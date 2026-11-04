@@ -148,3 +148,31 @@ export function watchAccounts(onChange) {
     .subscribe();
   return () => supabase.removeChannel(ch);
 }
+
+// ---------- passwords ----------
+/** "Forgot password?": tells the farm owner (or the super admin, for owners). Same answer for any number. */
+export async function requestReset(phone) {
+  must(await supabase.rpc('request_password_reset', { phone: checkPhone(phone) }));
+}
+
+/** 6-digit temporary password that is easy to read out over the phone. */
+function tempPassword() {
+  const n = new Uint32Array(1);
+  crypto.getRandomValues(n);
+  return String(100000 + (n[0] % 900000));
+}
+
+/** Owner / super admin: sets a temporary password and returns it to pass on. */
+export async function resetPassword(userId) {
+  const code = tempPassword();
+  must(await supabase.rpc('admin_reset_password', { target: userId, temp_password: code }));
+  return code;
+}
+
+/** Signed-in user chooses a new password (also used right after a reset). */
+export async function changeMyPassword(next, confirm) {
+  if (String(next).length < 6) throw new Error('Password must be at least 6 characters');
+  if (confirm !== undefined && next !== confirm) throw new Error('The two passwords are not the same');
+  must(await supabase.auth.updateUser({ password: next }));
+  must(await supabase.rpc('password_changed'));
+}

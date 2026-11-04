@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Wallet, ShoppingBag, HandCoins, CalendarClock, Pencil } from 'lucide-react';
+import { Wallet, ShoppingBag, HandCoins, CalendarClock, Pencil, KeyRound } from 'lucide-react';
+import { LIVE } from '../../config';
+import { ChangePasswordModal } from '../live/Passwords';
 import { useDB } from '../../data/store';
 import { useCurrentCustomer, notificationsFor } from '../../data/selectors';
 import { Button, Card, CardHeader, Badge, FormModal, toast } from '../../components/ui';
@@ -15,6 +17,7 @@ export default function Account() {
   const navigate = useNavigate();
   const [paying, setPaying] = useState(false);
   const [edit, setEdit] = useState(false);
+  const [pw, setPw] = useState(false);
   if (!c) return <Navigate to="/login" replace state={{ customer: true, from: '/account' }} />;
   const acc = customerAccount(db, c.id);
   const upcoming = acc.orders.filter((o) => ['booked', 'ready'].includes(o.status)).sort((a, b) => a.pickupDate.localeCompare(b.pickupDate));
@@ -28,7 +31,7 @@ export default function Account() {
           <h1 className="font-display text-4xl font-semibold text-brand-900 dark:text-white">Hello, {c.name.split(' ')[0]}</h1>
           <p className="text-sm text-slate-500">{c.phone} · {c.location}</p>
         </div>
-        <div className="flex gap-2"><Button variant="secondary" icon={Pencil} onClick={() => setEdit(true)}>Edit profile</Button><Link to="/shop"><Button icon={ShoppingBag}>Shop</Button></Link></div>
+        <div className="flex flex-wrap gap-2"><Button variant="secondary" icon={Pencil} onClick={() => setEdit(true)}>Edit profile</Button>{LIVE && <Button variant="secondary" icon={KeyRound} onClick={() => setPw(true)}>Change password</Button>}<Link to="/shop"><Button icon={ShoppingBag}>Shop</Button></Link></div>
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -77,7 +80,8 @@ export default function Account() {
         </Card>
       </div>
       <PayModal open={paying} onClose={() => setPaying(false)} title="Pay your balance" subtitle={`You owe ${money(acc.debt)}`} amount={acc.debt} max={acc.debt} phone={c.phone} methods={['mtn', 'telecel', 'at', 'card']} onPaid={({ method, account, amount }) => payDebts(c.id, amount, method, account)} />
-      <FormModal open={edit} onClose={() => setEdit(false)} title="Edit profile" initial={c} fields={[{ name: 'name', label: 'Name', required: true, span: 2 }, { name: 'email', label: 'Email' }, { name: 'location', label: 'Area' }, { name: 'password', label: 'Password', type: 'password', required: true }]} onSubmit={(v) => { db.update('customers', c.id, { name: v.name, email: v.email, location: v.location, password: v.password }); toast.success('Profile saved'); setEdit(false); }} />
+      {LIVE && <ChangePasswordModal open={pw} onClose={() => setPw(false)} />}
+      <FormModal open={edit} onClose={() => setEdit(false)} title="Edit profile" initial={c} fields={[{ name: 'name', label: 'Name', required: true, span: 2 }, { name: 'email', label: 'Email' }, { name: 'location', label: 'Area' }, ...(LIVE ? [] : [{ name: 'password', label: 'Password', type: 'password', required: true }])]} onSubmit={(v) => { db.update('customers', c.id, { name: v.name, email: v.email, location: v.location, ...(LIVE ? {} : { password: v.password }) }); toast.success('Profile saved'); setEdit(false); }} />
     </div>
   );
 }

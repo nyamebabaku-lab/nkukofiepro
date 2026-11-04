@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Toaster, toast } from '../../components/ui';
 import { boot, useLive } from './useLive';
 import LiveLogin from './LiveLogin';
+import { MustChangePassword } from './Passwords';
 import StatusScreen, { Splash } from './StatusScreen';
 
 let booted = false;
@@ -22,6 +23,7 @@ export default function LiveRoot({ children }) {
   if (phase === 'boot' || phase === 'loading') body = <Splash />;
   else if (phase === 'out') body = <LiveLogin />;
   else if (phase === 'in') body = children;
+  else if (phase === 'changePassword') body = <MustChangePassword />;
   else body = <StatusScreen />;
   return (
     <>

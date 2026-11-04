@@ -1,11 +1,12 @@
 // Super admin: approve and manage farm businesses and every account; clear demo & test data.
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
+import { KeyRound, Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
 import { useSession } from '../../data/store';
 import { Button, Card, CardHeader, Badge, Tabs, DataTable, Avatar, StatCard, Modal, Field, Input, EmptyState, Toaster, confirmDialog, toast, cx } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
 import { AccountActions } from '../admin/Accounts';
-import { listBusinesses, listProfiles, listAudit, setBusinessStatus, setBusinessTest, deleteBusiness, clearTestData, setPlatform, platformSettings, watchAccounts, enterApp, STATUS, roleLabel } from '../../lib/accounts';
+import { listBusinesses, listProfiles, listAudit, setBusinessStatus, setBusinessTest, deleteBusiness, clearTestData, setPlatform, platformSettings, watchAccounts, enterApp, resetPassword, STATUS, roleLabel } from '../../lib/accounts';
+import { TempPasswordModal, ChangePasswordModal } from '../live/Passwords';
 import { leave, useLive } from '../live/useLive';
 import { fmtDateTime } from '../../lib/format';
 
@@ -37,6 +38,26 @@ function BusinessActions({ b, onDone, onOpen }) {
       >
         Delete
       </Button>
+    </div>
+  );
+}
+
+/** Owners are managed with their business, but the super admin can still reset their password. */
+function OwnerReset({ p, onDone }) {
+  const [temp, setTemp] = useState(null);
+  const go = async () => {
+    if (!(await confirmDialog(`Reset ${p.full_name}'s password?`, 'They are signed out everywhere and get a temporary password.', { danger: false, confirmLabel: 'Reset password' }))) return;
+    try {
+      setTemp({ code: await resetPassword(p.user_id), name: p.full_name, phone: p.phone });
+      onDone();
+    } catch (e) {
+      toast.error('Not reset', e.message);
+    }
+  };
+  return (
+    <div className="flex justify-end">
+      <Button size="sm" variant={p.reset_requested_at ? 'primary' : 'ghost'} icon={KeyRound} onClick={go}>Reset password</Button>
+      <TempPasswordModal result={temp} onClose={() => setTemp(null)} />
     </div>
   );
 }
@@ -107,6 +128,7 @@ export default function Platform() {
   const profile = useSession((s) => s.profile);
   const { dark, toggleDark } = useSession();
   const [tab, setTab] = useState('overview');
+  const [pw, setPw] = useState(false);
   const [data, setData] = useState({ businesses: [], profiles: [], audit: [], settings: null, loaded: false });
   const load = useCallback(async () => {
     try {
@@ -143,6 +165,7 @@ export default function Platform() {
           <div className="ml-auto flex items-center gap-1">
             <button type="button" onClick={toggleDark} className="rounded-xl p-2 text-brand-100 hover:bg-white/10" aria-label="Dark mode">{dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}</button>
             <span className="hidden px-2 text-sm sm:block">{profile?.full_name}</span>
+            <button type="button" onClick={() => setPw(true)} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-100 hover:bg-white/10"><KeyRound className="h-4 w-4" /> <span className="hidden sm:inline">Password</span></button>
             <button type="button" onClick={() => leave()} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-100 hover:bg-white/10"><LogOut className="h-4 w-4" /> Sign out</button>
           </div>
         </div>
@@ -187,6 +210,19 @@ export default function Platform() {
                 })}
               </div>
             </Card>
+            {data.profiles.some((p) => p.reset_requested_at && p.role === 'owner') && (
+              <Card>
+                <CardHeader title="Owners asking for a password reset" icon={KeyRound} />
+                <div className="space-y-2 p-4">
+                  {data.profiles.filter((p) => p.reset_requested_at && p.role === 'owner').map((p) => (
+                    <div key={p.user_id} className="flex items-center gap-3 rounded-2xl border border-cream-200 p-3 dark:border-white/10">
+                      <div className="min-w-0 flex-1"><p className="font-semibold">{p.full_name}</p><p className="text-xs text-slate-500">{bizName.get(p.business_id)} · {p.phone} · {fmtDateTime(p.reset_requested_at)}</p></div>
+                      <OwnerReset p={p} onDone={load} />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
             <Card>
               <CardHeader title="Recent activity" />
               <div className="max-h-96 divide-y divide-cream-200 overflow-y-auto px-5 pb-3 text-sm dark:divide-white/5">
@@ -219,13 +255,14 @@ export default function Platform() {
               { key: 'full_name', label: 'Name', render: (p) => <div className="flex items-center gap-3"><Avatar name={p.full_name} size="sm" /><div><p className="font-semibold">{p.full_name} {p.is_test && <Badge tone="violet">Test</Badge>}</p><p className="text-xs text-slate-400">{p.phone}</p></div></div> },
               { key: 'role', label: 'Role', render: (p) => roleLabel(p.role) },
               { key: 'business', label: 'Business', sort: (p) => bizName.get(p.business_id) || '', render: (p) => bizName.get(p.business_id) || '—' },
-              { key: 'status', label: 'Status', render: (p) => <Badge tone={STATUS[p.status].tone} dot>{STATUS[p.status].label}</Badge> },
-              { key: 'x', label: '', nosort: true, render: (p) => (p.role === 'owner' ? <span className="text-xs text-slate-400">Managed with the business</span> : <AccountActions p={p} onDone={load} />) },
+              { key: 'status', label: 'Status', render: (p) => <div className="flex flex-wrap gap-1"><Badge tone={STATUS[p.status].tone} dot>{STATUS[p.status].label}</Badge>{p.reset_requested_at && <Badge tone="gold">Reset requested</Badge>}</div> },
+              { key: 'x', label: '', nosort: true, render: (p) => (p.role === 'owner' ? <OwnerReset p={p} onDone={load} /> : <AccountActions p={p} onDone={load} />) },
             ]}
           />
         )}
         {tab === 'data' && data.settings && <DataTab businesses={data.businesses} profiles={data.profiles} settings={data.settings} reload={load} />}
       </main>
+      <ChangePasswordModal open={pw} onClose={() => setPw(false)} />
       <Toaster />
     </div>
   );

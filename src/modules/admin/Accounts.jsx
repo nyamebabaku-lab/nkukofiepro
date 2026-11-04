@@ -3,12 +3,24 @@ import { useCallback, useEffect, useState } from 'react';
 import { UserCheck, UserX, PauseCircle, PlayCircle, Power, Trash2, KeyRound, RefreshCw, Copy, Share2, Users, Hourglass, Loader2 } from 'lucide-react';
 import { useSession } from '../../data/store';
 import { PageHeader, Button, Card, CardHeader, Badge, Tabs, DataTable, Avatar, Select, StatCard, Modal, Field, Input, EmptyState, confirmDialog, toast } from '../../components/ui';
-import { listProfiles, setAccountStatus, setMemberRole, deleteAccount, regenerateFarmCode, watchAccounts, fetchProfile, STATUS, MEMBER_ROLES, roleLabel } from '../../lib/accounts';
+import { listProfiles, setAccountStatus, setMemberRole, deleteAccount, regenerateFarmCode, watchAccounts, fetchProfile, resetPassword, STATUS, MEMBER_ROLES, roleLabel } from '../../lib/accounts';
+import { TempPasswordModal } from '../live/Passwords';
 import { fmtDateTime } from '../../lib/format';
 
 /** Action buttons shared with the super admin's account list. */
 export function AccountActions({ p, onDone, compact }) {
   const [reason, setReason] = useState(null);
+  const [temp, setTemp] = useState(null);
+  const reset = async () => {
+    if (!(await confirmDialog(`Reset ${p.full_name}'s password?`, 'They are signed out on all devices and get a temporary password to sign in with, then choose a new one.', { danger: false, confirmLabel: 'Reset password' }))) return;
+    try {
+      const code = await resetPassword(p.user_id);
+      setTemp({ code, name: p.full_name, phone: p.phone });
+      onDone?.();
+    } catch (e) {
+      toast.error('Not reset', e.message);
+    }
+  };
   const run = async (fn, ok) => {
     try {
       await fn();
@@ -31,6 +43,7 @@ export function AccountActions({ p, onDone, compact }) {
       {p.status === 'active' && <Button size={size} variant="secondary" icon={PauseCircle} onClick={() => ask('suspended')}>Suspend</Button>}
       {(p.status === 'suspended' || p.status === 'deactivated') && <Button size={size} variant="secondary" icon={PlayCircle} onClick={() => run(() => setAccountStatus(p.user_id, 'active'), `${p.full_name} activated`)}>Activate</Button>}
       {p.status === 'active' && <Button size={size} variant="ghost" icon={Power} onClick={() => ask('deactivated')}>Deactivate</Button>}
+      {p.status !== 'pending' && <Button size={size} variant={p.reset_requested_at ? 'primary' : 'ghost'} icon={KeyRound} onClick={reset}>Reset password</Button>}
       <Button
         size={size}
         variant="ghost"
@@ -51,6 +64,7 @@ export function AccountActions({ p, onDone, compact }) {
       >
         <Field label="Reason (shown to them)"><Input value={reason?.text || ''} onChange={(e) => setReason({ ...reason, text: e.target.value })} placeholder="Optional" /></Field>
       </Modal>
+      <TempPasswordModal result={temp} onClose={() => setTemp(null)} />
     </div>
   );
 }
@@ -67,6 +81,7 @@ export default function Accounts() {
   }, [load]);
   const others = (rows || []).filter((p) => p.user_id !== profile.user_id && p.role !== 'owner');
   const pending = others.filter((p) => p.status === 'pending');
+  const resets = others.filter((p) => p.reset_requested_at && p.status !== 'pending');
   const lists = { pending, staff: others.filter((p) => p.role !== 'customer' && p.status !== 'pending'), customers: others.filter((p) => p.role === 'customer' && p.status !== 'pending') };
   const share = () => {
     const text = `Join ${profile.business?.name} on PoultryPro: install the PoultryPro app, tap "Create account" and enter the farm code ${code}.`;
@@ -102,6 +117,19 @@ export default function Accounts() {
         <StatCard label="Waiting for you" value={pending.length} icon={Hourglass} tone="gold" sub="new account requests" onClick={() => setTab('pending')} />
         <StatCard label="Active accounts" value={others.filter((p) => p.status === 'active').length} icon={Users} tone="brand" sub={`${others.filter((p) => p.status === 'suspended').length} suspended`} />
       </div>
+      {resets.length > 0 && (
+        <Card className="mb-6 border-gold-300 dark:border-gold-500/30">
+          <CardHeader title="Password reset requests" subtitle="These people tapped “Forgot password?”. Reset it and give them the temporary password." icon={KeyRound} />
+          <div className="space-y-2 p-4">
+            {resets.map((p) => (
+              <div key={p.user_id} className="flex flex-col gap-3 rounded-2xl border border-cream-200 p-3 sm:flex-row sm:items-center dark:border-white/10">
+                <div className="flex min-w-0 flex-1 items-center gap-3"><Avatar name={p.full_name} size="sm" /><div><p className="font-semibold">{p.full_name} <span className="text-xs font-normal text-slate-400">· {roleLabel(p.role)}</span></p><p className="text-xs text-slate-500">{p.phone} · asked {fmtDateTime(p.reset_requested_at)}</p></div></div>
+                <AccountActions p={p} onDone={load} />
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
       <Tabs className="mb-4" value={tab} onChange={setTab} tabs={[{ value: 'pending', label: 'Requests', count: pending.length }, { value: 'staff', label: 'Workers & managers', count: lists.staff.length }, { value: 'customers', label: 'Customers', count: lists.customers.length }]} />
       {!rows ? (
         <Card className="flex justify-center p-10"><Loader2 className="h-6 w-6 animate-spin text-brand-600" /></Card>
@@ -120,7 +148,7 @@ export default function Accounts() {
                 <Select className="w-40 py-1.5" value={p.role} onChange={async (e) => { try { await setMemberRole(p.user_id, e.target.value); toast.success('Role changed'); load(); } catch (err) { toast.error('Not changed', err.message); } }} options={MEMBER_ROLES} />
               )),
             },
-            { key: 'status', label: 'Status', render: (p) => <div><Badge tone={STATUS[p.status].tone} dot>{STATUS[p.status].label}</Badge>{p.note && p.status !== 'active' && <p className="mt-0.5 max-w-[180px] truncate text-xs text-slate-400">{p.note}</p>}</div> },
+            { key: 'status', label: 'Status', render: (p) => <div><Badge tone={STATUS[p.status].tone} dot>{STATUS[p.status].label}</Badge>{p.reset_requested_at && p.status !== 'pending' && <Badge tone="gold" className="ml-1">Reset requested</Badge>}{p.note && p.status !== 'active' && <p className="mt-0.5 max-w-[180px] truncate text-xs text-slate-400">{p.note}</p>}</div> },
             { key: 'requested_at', label: 'Joined', render: (p) => fmtDateTime(p.requested_at), hideOnMobile: true },
             { key: 'x', label: '', nosort: true, render: (p) => <AccountActions p={p} onDone={load} /> },
           ]}

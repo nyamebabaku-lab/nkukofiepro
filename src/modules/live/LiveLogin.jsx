@@ -1,13 +1,15 @@
 // Live sign-in / create-account screens. PoultryPro: customers, workers and managers join with a farm code.
 // PoultryPro Admin: owners register a farm business; the very first visit sets up the super admin.
 import { useEffect, useState } from 'react';
-import { ArrowRight, Eye, EyeOff, CheckCircle2, ShieldCheck, Building2, UserPlus, LogIn, Loader2 } from 'lucide-react';
-import { MODE } from '../../config';
+import { ArrowRight, Eye, EyeOff, CheckCircle2, ShieldCheck, Building2, UserPlus, LogIn, Loader2, KeyRound } from 'lucide-react';
 import { Button, Field, Input, Segmented, toast, cx } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
 import HeroPhoto from '../../components/HeroPhoto';
-import { signIn, signUpMember, registerBusiness, businessByCode, superAdminExists, claimSuperAdmin, MEMBER_ROLES } from '../../lib/accounts';
+import { signIn, signUpMember, registerBusiness, businessByCode, superAdminExists, claimSuperAdmin, requestReset, MEMBER_ROLES } from '../../lib/accounts';
 import { decide, useLive } from './useLive';
+
+// Compared directly so each build drops the other app's forms entirely.
+const ADMIN = import.meta.env.VITE_APP === 'admin';
 
 function Password({ value, onChange, placeholder = 'At least 6 characters', auto = 'current-password' }) {
   const [show, setShow] = useState(false);
@@ -19,9 +21,44 @@ function Password({ value, onChange, placeholder = 'At least 6 characters', auto
   );
 }
 
+function ForgotForm({ phone, onBack }) {
+  const [v, setV] = useState(phone || '');
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await requestReset(v);
+      setSent(true);
+    } catch (err) {
+      toast.error('Not sent', err.message);
+    }
+    setBusy(false);
+  };
+  if (sent)
+    return (
+      <div className="space-y-4 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15"><CheckCircle2 className="h-8 w-8" /></div>
+        <p className="font-semibold text-slate-900 dark:text-white">Request sent</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">If {v} has an account, {ADMIN ? 'the PoultryPro platform admin' : 'your farm owner'} can now see your request. They will give you a <b>temporary password</b> — sign in with it and the app will ask you to choose a new one.</p>
+        <Button variant="secondary" className="w-full" onClick={onBack}>Back to sign in</Button>
+      </div>
+    );
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <p className="text-sm text-slate-600 dark:text-slate-300">Enter the phone number you sign in with. {ADMIN ? 'The PoultryPro platform admin' : 'Your farm owner'} will be asked to reset your password.</p>
+      <Field label="Phone number"><Input inputMode="tel" autoComplete="username" value={v} onChange={(e) => setV(e.target.value)} placeholder="024 123 4567" /></Field>
+      <Button type="submit" size="lg" className="w-full" icon={busy ? Loader2 : KeyRound} disabled={busy}>Ask for a password reset</Button>
+      <button type="button" onClick={onBack} className="w-full text-center text-sm text-slate-500 hover:underline">Back to sign in</button>
+    </form>
+  );
+}
+
 function SignInForm() {
   const [v, setV] = useState({ phone: '', password: '' });
   const [busy, setBusy] = useState(false);
+  const [forgot, setForgot] = useState(false);
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -32,12 +69,13 @@ function SignInForm() {
     }
     setBusy(false);
   };
+  if (forgot) return <ForgotForm phone={v.phone} onBack={() => setForgot(false)} />;
   return (
     <form onSubmit={submit} className="space-y-4">
       <Field label="Phone number"><Input inputMode="tel" autoComplete="username" value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} placeholder="024 123 4567" /></Field>
       <Field label="Password"><Password value={v.password} onChange={(password) => setV({ ...v, password })} placeholder="Your password" /></Field>
       <Button type="submit" size="lg" className="w-full" icon={busy ? Loader2 : LogIn} disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>
-      <p className="text-center text-xs text-slate-500">Forgot your password? Ask your farm {MODE === 'admin' ? 'platform admin' : 'owner'} to reset your account.</p>
+      <button type="button" onClick={() => setForgot(true)} className="w-full text-center text-sm font-semibold text-brand-700 hover:underline dark:text-gold-400">Forgot password?</button>
     </form>
   );
 }
@@ -141,9 +179,6 @@ function SuperAdminSetup() {
     </form>
   );
 }
-
-// Compared directly so each build drops the other app's forms entirely.
-const ADMIN = import.meta.env.VITE_APP === 'admin';
 
 export default function LiveLogin() {
   const admin = ADMIN;

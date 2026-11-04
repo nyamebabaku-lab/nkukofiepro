@@ -31,6 +31,8 @@ export async function decide(profile) {
   if (!APP_ROLES.includes(profile.role)) return set({ phase: 'wrongApp' });
   if (profile.role !== 'super_admin' && profile.business?.status !== 'active') return set({ phase: profile.business?.status === 'pending' ? 'pending' : 'businessBlocked' });
   if (profile.status !== 'active') return set({ phase: profile.status === 'pending' ? 'pending' : 'blocked' });
+  // Signed in with a temporary password: a new one must be chosen first.
+  if (profile.must_change_password) return set({ phase: 'changePassword' });
   const was = useLive.getState().phase;
   if (was !== 'in') {
     set({ phase: 'loading' });

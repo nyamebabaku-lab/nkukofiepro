@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Eye, Menu, X, Bell, Moon, Sun, LogOut, ChevronsLeft, ChevronsRight, Search, Plus, Store, ChevronDown, MapPin, WifiOff, Download, Check, MoreHorizontal } from 'lucide-react';
+import { KeyRound, Eye, Menu, X, Bell, Moon, Sun, LogOut, ChevronsLeft, ChevronsRight, Search, Plus, Store, ChevronDown, MapPin, WifiOff, Download, Check, MoreHorizontal } from 'lucide-react';
 import { useDB, useSession } from '../../data/store';
 import { useCurrentUser, useMyFarms, useFarmScope, notificationsFor } from '../../data/selectors';
 import { navFor, navItem, MOBILE_TABS, ROLES } from '../../lib/nav';
@@ -12,6 +12,7 @@ import Logo from './Logo';
 import { LIVE } from '../../config';
 import { leave } from '../../modules/live/useLive';
 import { enterApp } from '../../lib/accounts';
+import { ChangePasswordModal } from '../../modules/live/Passwords';
 
 function SidebarNav({ role, collapsed, onNavigate }) {
   return (
@@ -186,6 +187,7 @@ export default function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
   const online = useOnline();
   const showLog = useQuickLog((s) => s.show);
   const loc = useLocation();
@@ -287,6 +289,7 @@ export default function AppShell() {
                       </div>
                       {!LIVE && <Link to="/" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-cream-100 dark:text-slate-200 dark:hover:bg-white/5"><Store className="h-4 w-4" /> Open customer shop</Link>}
                       {user.readOnly && <button type="button" onClick={backToPlatform} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-cream-100 dark:text-slate-200 dark:hover:bg-white/5"><Eye className="h-4 w-4" /> Back to platform</button>}
+                      {LIVE && !user.readOnly && <button type="button" onClick={() => { setMenuOpen(false); setPwOpen(true); }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-cream-100 dark:text-slate-200 dark:hover:bg-white/5"><KeyRound className="h-4 w-4" /> Change password</button>}
                       <button type="button" onClick={signOut} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-accent-700 hover:bg-accent-50 dark:text-accent-300 dark:hover:bg-accent-500/10"><LogOut className="h-4 w-4" /> Sign out</button>
                     </div>
                   </>
@@ -326,6 +329,7 @@ export default function AppShell() {
       </nav>
 
       <QuickLog />
+      {LIVE && <ChangePasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />}
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
