@@ -77,7 +77,7 @@ export default function PortalLayout() {
             <p className="font-semibold text-white">Talk to us</p>
             <p className="flex items-center gap-2 text-brand-100/70"><Phone className="h-4 w-4" /> {db.settings.phone}</p>
             <p className="text-brand-100/70">Pick-ups {db.settings.pickupHours}, Mon–Sat</p>
-            <Link to="/login" className="inline-block pt-2 text-xs font-semibold text-gold-400 hover:underline">Staff sign in →</Link>
+            <p className="flex gap-4 pt-2 text-xs font-semibold"><Link to="/login" className="text-gold-400 hover:underline">Staff sign in →</Link><Link to="/credits" className="text-brand-100/60 hover:underline">Photo credits</Link></p>
           </div>
         </div>
       </footer>

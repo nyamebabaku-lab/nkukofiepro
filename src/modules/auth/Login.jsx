@@ -4,7 +4,7 @@ import { Crown, ClipboardList, HardHat, ShoppingBasket, ArrowRight, Eye, EyeOff,
 import { useDB, useSession } from '../../data/store';
 import { Button, Field, Input, Segmented, toast, cx } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
-import ProductArt from '../../components/ProductArt';
+import { Photo } from '../../components/ProductArt';
 
 const DEMOS = [
   { id: 'usr_owner', label: 'Owner', sub: 'Kwame · all farms, money & wallet', icon: Crown, tone: 'bg-gold-500 text-brand-950' },
@@ -66,8 +66,8 @@ export default function Login() {
           </div>
         </div>
         <div className="pointer-events-none absolute -right-10 top-24 grid w-80 rotate-6 grid-cols-2 gap-4 opacity-90">
-          {['crate', 'hen', 'chick', 'turkey'].map((a, i) => (
-            <ProductArt key={a} art={a} className={cx('aspect-square shadow-2xl', i % 2 && 'translate-y-8')} rounded="rounded-3xl" />
+          {[['eggs', 'crate'], ['hen', 'hen'], ['chicks', 'chick'], ['turkey', 'turkey']].map(([k, a], i) => (
+            <Photo key={k} k={k} art={a} className={cx('aspect-square w-full shadow-2xl ring-4 ring-white/10', i % 2 && 'translate-y-8')} rounded="rounded-3xl" />
           ))}
         </div>
       </div>

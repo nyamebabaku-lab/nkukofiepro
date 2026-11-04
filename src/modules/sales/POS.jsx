@@ -4,7 +4,8 @@ import { Minus, Plus, ShoppingCart, Trash2, AlertTriangle, X } from 'lucide-reac
 import { useDB } from '../../data/store';
 import { useFarmScope, useMyFarms } from '../../data/selectors';
 import { PageHeader, Button, Card, Segmented, SearchInput, Field, Input, Select, toast, cx } from '../../components/ui';
-import { ProductImage } from '../../components/ProductArt';
+import { ProductImage, Photo } from '../../components/ProductArt';
+import { CATEGORY_PHOTO } from '../../data/media';
 import PayModal from '../../components/PayModal';
 import { PRODUCT_CATEGORIES, productStock } from '../../lib/stock';
 import { priceLines, createOrder, recordPayment, unitPrice, pickupCheck } from '../../lib/orders';
@@ -127,8 +128,8 @@ export default function POS() {
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             <SearchInput value={q} onChange={setQ} placeholder="Search products…" className="sm:w-64" />
             <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1">
-              {[{ value: 'all', label: 'All', emoji: '✨' }, ...PRODUCT_CATEGORIES].map((c) => (
-                <button key={c.value} type="button" onClick={() => setCat(c.value)} className={cx('whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition', cat === c.value ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-cream-300 dark:bg-navy-900 dark:text-slate-300 dark:ring-white/10')}>{c.emoji} {c.label}</button>
+              {[{ value: 'all', label: 'All' }, ...PRODUCT_CATEGORIES].map((c) => (
+                <button key={c.value} type="button" onClick={() => setCat(c.value)} className={cx('flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-1 pl-1 pr-3 text-xs font-semibold transition', cat === c.value ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-cream-300 dark:bg-navy-900 dark:text-slate-300 dark:ring-white/10')}><Photo k={CATEGORY_PHOTO[c.value]} className="h-6 w-6" rounded="rounded-full" /> {c.label}</button>
               ))}
             </div>
           </div>

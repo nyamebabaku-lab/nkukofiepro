@@ -1,7 +1,8 @@
 // One payment window for everything: MoMo, card or cash, with a simulated phone prompt.
 import { useEffect, useState } from 'react';
-import { Smartphone, CreditCard, Banknote, Loader2, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
+import { Smartphone, CreditCard, Loader2, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 import { Modal, Button, Field, Input, cx } from './ui';
+import PayLogo from './PayLogo';
 import { METHODS, charge } from '../lib/payments';
 import { money, round2 } from '../lib/format';
 
@@ -69,7 +70,7 @@ export default function PayModal({ open, onClose, title = 'Payment', subtitle, a
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
             {METHODS.filter((x) => methods.includes(x.id)).map((x) => (
               <button key={x.id} type="button" onClick={() => setMethod(x.id)} className={cx('flex flex-col items-center gap-1.5 rounded-2xl border p-2.5 text-xs font-semibold transition', method === x.id ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-600/20 dark:bg-brand-500/10' : 'border-cream-200 hover:border-brand-300 dark:border-white/10')}>
-                <span className={cx('flex h-9 w-9 items-center justify-center rounded-xl text-[10px] font-extrabold', x.color)}>{x.kind === 'card' ? <CreditCard className="h-4 w-4" /> : x.kind === 'cash' ? <Banknote className="h-4 w-4" /> : x.short}</span>
+                <PayLogo method={x.id} />
                 <span className="text-center leading-tight text-slate-700 dark:text-slate-200">{x.label.replace(' / Mastercard', '')}</span>
               </button>
             ))}

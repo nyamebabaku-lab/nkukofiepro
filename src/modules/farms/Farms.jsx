@@ -5,6 +5,8 @@ import { useDB } from '../../data/store';
 import { useCurrentUser, useMyFarms } from '../../data/selectors';
 import { PageHeader, Button, Card, Badge, Progress, FormModal, IconButton, Avatar, toast } from '../../components/ui';
 import { flockIndex } from '../../lib/flock';
+import { Photo } from '../../components/ProductArt';
+import { farmPhotoKey, flockPhoto } from '../../data/media';
 import { num, sum } from '../../lib/format';
 
 const PEN_TYPES = ['Layer house (deep litter)', 'Layer house (battery cage)', 'Broiler house', 'Brooder', 'Free range run', 'Semi-intensive pen', 'Pond & shelter', 'Hatchery', 'Store room'];
@@ -52,8 +54,10 @@ export default function Farms() {
           const staff = db.users.filter((u) => u.farmIds.includes(farm.id) && u.role === 'worker');
           return (
             <Card key={farm.id} className="overflow-hidden">
-              <div className="grain relative p-5 text-white sm:p-6" style={{ background: `linear-gradient(135deg, ${farm.color}, #1f3d2b)` }}>
-                <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="relative overflow-hidden p-5 text-white sm:p-6">
+                <Photo k={farmPhotoKey(farm)} className="absolute inset-0 h-full w-full" rounded="rounded-none" />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(120deg, ${farm.color}ee 0%, #1f3d2bd9 45%, #1f3d2b66 100%)` }} />
+                <div className="relative flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <h2 className="font-display text-2xl font-semibold">{farm.name}</h2>
                     <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/80"><span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {farm.location}</span>{farm.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4" /> {farm.phone}</span>}{farm.acres ? <span>{farm.acres} acres</span> : null}</p>
@@ -68,7 +72,7 @@ export default function Farms() {
                     {isOwner && <IconButton icon={Pencil} label="Edit farm" className="text-white hover:bg-white/10" onClick={() => setFarmForm(farm)} />}
                   </div>
                 </div>
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="relative mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[['Birds', num(birds)], ['Active flocks', flocks.length], ['Houses', pens.length], ['Staff', staff.length + (mgr ? 1 : 0)]].map(([k, v]) => (
                     <div key={k} className="rounded-xl bg-white/10 p-3 ring-1 ring-white/10"><p className="text-xl font-extrabold">{v}</p><p className="text-xs text-white/70">{k}</p></div>
                   ))}
@@ -87,7 +91,7 @@ export default function Farms() {
                   return (
                     <div key={p.id} className="rounded-2xl border border-cream-200 p-4 dark:border-white/10">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-brand-600" /><p className="font-bold text-slate-900 dark:text-white">{p.name}</p></div>
+                        <div className="flex items-center gap-2">{inPen[0] ? <img src={flockPhoto(inPen[0])} alt="" className="h-9 w-9 rounded-xl object-cover" /> : <Warehouse className="h-4 w-4 text-brand-600" />}<p className="font-bold text-slate-900 dark:text-white">{p.name}</p></div>
                         {user.role !== 'worker' && <IconButton icon={Pencil} label="Edit" className="-m-1.5" onClick={() => setPenForm(p)} />}
                       </div>
                       <p className="text-xs text-slate-500">{p.type}</p>

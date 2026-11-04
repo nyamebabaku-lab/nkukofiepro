@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, CalendarCheck, Smartphone, ShieldCheck, Truck, Leaf, Syringe } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { Button, cx } from '../../components/ui';
-import ProductArt from '../../components/ProductArt';
+import { Photo } from '../../components/ProductArt';
+import { CATEGORY_PHOTO } from '../../data/media';
 import { ProductCard } from './Shop';
 import { PRODUCT_CATEGORIES } from '../../lib/stock';
 
@@ -23,7 +24,7 @@ export default function Home() {
             </div>
           </div>
           <div className="relative mx-auto grid w-full max-w-sm grid-cols-2 gap-4">
-            {['crate', 'broiler', 'chick', 'meat'].map((a, i) => <ProductArt key={a} art={a} className={cx('aspect-square shadow-2xl', i % 2 ? 'translate-y-6' : '', 'animate-float')} rounded="rounded-3xl" />)}
+            {[['eggs', 'crate'], ['broiler', 'broiler'], ['chicks', 'chick'], ['dressed', 'meat']].map(([k, a], i) => <Photo key={k} k={k} art={a} className={cx('aspect-square w-full shadow-2xl ring-4 ring-white/10', i % 2 ? 'translate-y-6' : '')} rounded="rounded-3xl" />)}
           </div>
         </div>
       </section>
@@ -32,7 +33,7 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
           {PRODUCT_CATEGORIES.map((c) => (
             <Link key={c.value} to={`/shop?cat=${c.value}`} className="flex flex-col items-center gap-2 rounded-2xl bg-white p-4 text-center shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift dark:bg-navy-900">
-              <span className="text-3xl">{c.emoji}</span>
+              <Photo k={CATEGORY_PHOTO[c.value]} alt={c.label} className="h-16 w-16" rounded="rounded-full" />
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{c.label}</span>
             </Link>
           ))}

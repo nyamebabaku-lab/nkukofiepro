@@ -16,6 +16,7 @@ const Shop = lazy(() => import('./modules/portal/Shop'));
 const Cart = lazy(() => import('./modules/portal/Cart'));
 const Account = lazy(() => import('./modules/portal/Account'));
 const MyOrders = lazy(() => import('./modules/portal/MyOrders'));
+const Credits = lazy(() => import('./modules/portal/Credits'));
 const Dashboard = lazy(() => import('./modules/dashboard/Dashboard'));
 const DailyLog = lazy(() => import('./modules/records/DailyLog'));
 const Farms = lazy(() => import('./modules/farms/Farms'));
@@ -86,6 +87,7 @@ export default function App() {
             <Route path="cart" element={<Cart />} />
             <Route path="account" element={<Account />} />
             <Route path="account/orders" element={<MyOrders />} />
+            <Route path="credits" element={<Credits />} />
           </Route>
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
