@@ -1,46 +1,47 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { ShieldAlert } from 'lucide-react';
-import { useDB, useSession } from './data/store';
-import { useCurrentUser } from './data/selectors';
-import { can } from './lib/nav';
-import { setCurrencySymbol } from './lib/format';
-import { Toaster, EmptyState, Skeleton } from './components/ui';
-import AppShell from './components/layout/AppShell';
-import PortalLayout from './components/layout/PortalLayout';
+import { useDB, useSession } from '../data/store';
+import { useCurrentUser } from '../data/selectors';
+import { can } from '../lib/nav';
+import { setCurrencySymbol } from '../lib/format';
+import { Toaster, EmptyState, Skeleton } from '../components/ui';
+import AppShell from '../components/layout/AppShell';
+import PortalLayout from '../components/layout/PortalLayout';
+import DemoGate from '../modules/live/DemoGate';
 
-const Login = lazy(() => import('./modules/auth/Login'));
-const Signup = lazy(() => import('./modules/auth/Signup'));
-const PortalHome = lazy(() => import('./modules/portal/Home'));
-const Shop = lazy(() => import('./modules/portal/Shop'));
-const Cart = lazy(() => import('./modules/portal/Cart'));
-const Account = lazy(() => import('./modules/portal/Account'));
-const MyOrders = lazy(() => import('./modules/portal/MyOrders'));
-const Dashboard = lazy(() => import('./modules/dashboard/Dashboard'));
-const DailyLog = lazy(() => import('./modules/records/DailyLog'));
-const Farms = lazy(() => import('./modules/farms/Farms'));
-const Flocks = lazy(() => import('./modules/flocks/Flocks'));
-const FlockDetail = lazy(() => import('./modules/flocks/FlockDetail'));
-const Health = lazy(() => import('./modules/health/Health'));
-const Hatchery = lazy(() => import('./modules/hatchery/Hatchery'));
-const Inventory = lazy(() => import('./modules/inventory/Inventory'));
-const Orders = lazy(() => import('./modules/sales/Orders'));
-const OrderDetail = lazy(() => import('./modules/sales/OrderDetail'));
-const POS = lazy(() => import('./modules/sales/POS'));
-const Pickups = lazy(() => import('./modules/sales/Pickups'));
-const Customers = lazy(() => import('./modules/customers/Customers'));
-const CustomerDetail = lazy(() => import('./modules/customers/CustomerDetail'));
-const Products = lazy(() => import('./modules/products/Products'));
-const Finance = lazy(() => import('./modules/finance/Finance'));
-const Wallet = lazy(() => import('./modules/finance/Wallet'));
-const Payroll = lazy(() => import('./modules/staff/Payroll'));
-const Staff = lazy(() => import('./modules/staff/Staff'));
-const Tasks = lazy(() => import('./modules/staff/Tasks'));
-const Attendance = lazy(() => import('./modules/staff/Attendance'));
-const Maintenance = lazy(() => import('./modules/staff/Maintenance'));
-const Reports = lazy(() => import('./modules/reports/Reports'));
-const Settings = lazy(() => import('./modules/settings/Settings'));
-const Notifications = lazy(() => import('./modules/notifications/Notifications'));
+const Login = lazy(() => import('../modules/auth/Login'));
+const Signup = lazy(() => import('../modules/auth/Signup'));
+const PortalHome = lazy(() => import('../modules/portal/Home'));
+const Shop = lazy(() => import('../modules/portal/Shop'));
+const Cart = lazy(() => import('../modules/portal/Cart'));
+const Account = lazy(() => import('../modules/portal/Account'));
+const MyOrders = lazy(() => import('../modules/portal/MyOrders'));
+const Dashboard = lazy(() => import('../modules/dashboard/Dashboard'));
+const DailyLog = lazy(() => import('../modules/records/DailyLog'));
+const Farms = lazy(() => import('../modules/farms/Farms'));
+const Flocks = lazy(() => import('../modules/flocks/Flocks'));
+const FlockDetail = lazy(() => import('../modules/flocks/FlockDetail'));
+const Health = lazy(() => import('../modules/health/Health'));
+const Hatchery = lazy(() => import('../modules/hatchery/Hatchery'));
+const Inventory = lazy(() => import('../modules/inventory/Inventory'));
+const Orders = lazy(() => import('../modules/sales/Orders'));
+const OrderDetail = lazy(() => import('../modules/sales/OrderDetail'));
+const POS = lazy(() => import('../modules/sales/POS'));
+const Pickups = lazy(() => import('../modules/sales/Pickups'));
+const Customers = lazy(() => import('../modules/customers/Customers'));
+const CustomerDetail = lazy(() => import('../modules/customers/CustomerDetail'));
+const Products = lazy(() => import('../modules/products/Products'));
+const Finance = lazy(() => import('../modules/finance/Finance'));
+const Wallet = lazy(() => import('../modules/finance/Wallet'));
+const Payroll = lazy(() => import('../modules/staff/Payroll'));
+const Staff = lazy(() => import('../modules/staff/Staff'));
+const Tasks = lazy(() => import('../modules/staff/Tasks'));
+const Attendance = lazy(() => import('../modules/staff/Attendance'));
+const Maintenance = lazy(() => import('../modules/staff/Maintenance'));
+const Reports = lazy(() => import('../modules/reports/Reports'));
+const Settings = lazy(() => import('../modules/settings/Settings'));
+const Notifications = lazy(() => import('../modules/notifications/Notifications'));
 
 function Loading() {
   return (
@@ -67,7 +68,7 @@ function Gate({ k, children }) {
 
 const page = (k, El) => <Gate k={k}><El /></Gate>;
 
-export default function App() {
+export default function DemoApp() {
   const dark = useSession((s) => s.dark);
   const currency = useDB((s) => s.settings.currency);
   setCurrencySymbol(currency);
@@ -77,6 +78,7 @@ export default function App() {
   }, [dark]);
 
   return (
+    <DemoGate>
     <HashRouter>
       <Suspense fallback={<div className="mx-auto max-w-5xl p-6"><Loading /></div>}>
         <Routes>
@@ -106,5 +108,6 @@ export default function App() {
       </Suspense>
       <Toaster />
     </HashRouter>
+    </DemoGate>
   );
 }

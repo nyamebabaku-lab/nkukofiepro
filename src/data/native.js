@@ -19,3 +19,4 @@ export async function startNative() {
 
 /** Latest signed Android build (attached to each GitHub release by .github/workflows/android.yml). */
 export const APK_URL = 'https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download/PoultryPro.apk';
+export const ADMIN_APK_URL = 'https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download/PoultryPro-Admin.apk';

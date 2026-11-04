@@ -1,0 +1,232 @@
+// Super admin: approve and manage farm businesses and every account; clear demo & test data.
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
+import { useSession } from '../../data/store';
+import { Button, Card, CardHeader, Badge, Tabs, DataTable, Avatar, StatCard, Modal, Field, Input, EmptyState, Toaster, confirmDialog, toast, cx } from '../../components/ui';
+import Logo from '../../components/layout/Logo';
+import { AccountActions } from '../admin/Accounts';
+import { listBusinesses, listProfiles, listAudit, setBusinessStatus, setBusinessTest, deleteBusiness, clearTestData, setPlatform, platformSettings, watchAccounts, enterApp, STATUS, roleLabel } from '../../lib/accounts';
+import { leave, useLive } from '../live/useLive';
+import { fmtDateTime } from '../../lib/format';
+
+function BusinessActions({ b, onDone, onOpen }) {
+  const run = async (fn, ok) => {
+    try {
+      await fn();
+      toast.success(ok);
+      onDone();
+    } catch (e) {
+      toast.error('Not changed', e.message);
+    }
+  };
+  return (
+    <div className="flex flex-wrap justify-end gap-1.5">
+      {b.status === 'pending' && <Button size="sm" icon={CheckCircle2} onClick={() => run(() => setBusinessStatus(b.id, 'active'), `${b.name} approved`)}>Approve</Button>}
+      {b.status === 'active' && <Button size="sm" variant="secondary" icon={Eye} onClick={() => onOpen(b)}>Open</Button>}
+      {b.status === 'active' && <Button size="sm" variant="secondary" icon={PauseCircle} onClick={() => run(() => setBusinessStatus(b.id, 'suspended'), 'Business suspended')}>Suspend</Button>}
+      {(b.status === 'suspended' || b.status === 'deactivated') && <Button size="sm" variant="secondary" icon={PlayCircle} onClick={() => run(() => setBusinessStatus(b.id, 'active'), 'Business activated')}>Activate</Button>}
+      {b.status !== 'deactivated' && b.status !== 'pending' && <Button size="sm" variant="ghost" icon={Power} onClick={() => run(() => setBusinessStatus(b.id, 'deactivated'), 'Business deactivated')}>Deactivate</Button>}
+      {b.status === 'pending' && <Button size="sm" variant="soft-red" onClick={() => run(() => setBusinessStatus(b.id, 'deactivated', 'Not approved'), 'Business rejected')}>Reject</Button>}
+      <Button
+        size="sm"
+        variant="ghost"
+        icon={Trash2}
+        onClick={async () => {
+          if (await confirmDialog(`Delete ${b.name}?`, 'The business, all its farm records and every account in it are removed for good.', { confirmLabel: 'Delete business' })) run(() => deleteBusiness(b.id), 'Business deleted');
+        }}
+      >
+        Delete
+      </Button>
+    </div>
+  );
+}
+
+function DataTab({ businesses, profiles, settings, reload }) {
+  const [typed, setTyped] = useState('');
+  const [open, setOpen] = useState(false);
+  const testBiz = businesses.filter((b) => b.is_test);
+  const testUsers = profiles.filter((p) => p.is_test && p.role !== 'super_admin');
+  const clear = async () => {
+    try {
+      const r = await clearTestData();
+      toast.success('Demo & test data cleared', `${r.businesses} businesses and ${r.accounts} accounts removed`);
+      setOpen(false);
+      setTyped('');
+      reload();
+    } catch (e) {
+      toast.error('Not cleared', e.message);
+    }
+  };
+  const toggle = async (k) => {
+    try {
+      await setPlatform(k === 'demo' ? { demo: !settings.demo_enabled } : { testing: !settings.test_mode });
+      reload();
+    } catch (e) {
+      toast.error('Not changed', e.message);
+    }
+  };
+  return (
+    <div className="grid gap-6 xl:grid-cols-2">
+      <Card>
+        <CardHeader title="Clear all demo & test data" subtitle="Real farm businesses are never touched" icon={Trash2} />
+        <div className="space-y-4 p-5">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-xl bg-cream-100 p-3 dark:bg-white/5"><p className="text-xs text-slate-500">Test businesses</p><p className="text-2xl font-extrabold">{testBiz.length}</p></div>
+            <div className="rounded-xl bg-cream-100 p-3 dark:bg-white/5"><p className="text-xs text-slate-500">Test accounts</p><p className="text-2xl font-extrabold">{testUsers.length}</p></div>
+          </div>
+          {testBiz.length > 0 && <p className="text-xs text-slate-500">Will remove: {testBiz.map((b) => b.name).join(', ')}</p>}
+          <Button variant="danger" icon={Trash2} disabled={!testBiz.length && !testUsers.length} onClick={() => setOpen(true)}>Clear demo & test data…</Button>
+        </div>
+      </Card>
+      <Card>
+        <CardHeader title="Platform switches" icon={ShieldCheck} />
+        <div className="space-y-4 p-5">
+          {[
+            ['demo', 'Public demo site', settings.demo_enabled ? 'On — anyone can try the demo with fake farms' : 'Off — the demo link shows "The demo is closed" and wipes demo data in visitors\' browsers', settings.demo_enabled],
+            ['test', 'Test mode', settings.test_mode ? 'On — new businesses and accounts are marked as test data (cleared by the button)' : 'Off — new sign-ups are real. Turn this off when you go live.', settings.test_mode],
+          ].map(([k, title, text, on]) => (
+            <div key={k} className="flex items-start gap-4 rounded-2xl border border-cream-200 p-4 dark:border-white/10">
+              <div className="min-w-0 flex-1"><p className="font-semibold">{title}</p><p className="text-xs text-slate-500">{text}</p></div>
+              <button type="button" role="switch" aria-checked={on} onClick={() => toggle(k)} className={cx('relative h-7 w-12 shrink-0 rounded-full transition', on ? 'bg-brand-600' : 'bg-cream-300 dark:bg-white/20')}>
+                <span className={cx('absolute top-1 h-5 w-5 rounded-full bg-white shadow transition', on ? 'left-6' : 'left-1')} />
+              </button>
+            </div>
+          ))}
+          <p className="flex items-start gap-2 text-xs text-slate-500"><FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Mark or unmark single businesses as test on the Businesses tab.</p>
+        </div>
+      </Card>
+      <Modal open={open} onClose={() => setOpen(false)} title="Clear all demo & test data?" size="sm" footer={<Button variant="danger" disabled={typed !== 'CLEAR'} onClick={clear}>Clear for good</Button>}>
+        <p className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent-600" /> {testBiz.length} businesses and {testUsers.length} accounts, with all their records, will be deleted. This cannot be undone.</p>
+        <Field label="Type CLEAR to confirm" className="mt-4"><Input value={typed} onChange={(e) => setTyped(e.target.value.toUpperCase())} /></Field>
+      </Modal>
+    </div>
+  );
+}
+
+export default function Platform() {
+  const profile = useSession((s) => s.profile);
+  const { dark, toggleDark } = useSession();
+  const [tab, setTab] = useState('overview');
+  const [data, setData] = useState({ businesses: [], profiles: [], audit: [], settings: null, loaded: false });
+  const load = useCallback(async () => {
+    try {
+      const [businesses, profiles, audit, settings] = await Promise.all([listBusinesses(), listProfiles(), listAudit(), platformSettings()]);
+      setData({ businesses, profiles, audit, settings, loaded: true });
+    } catch (e) {
+      toast.error('Could not load', e.message);
+    }
+  }, []);
+  useEffect(() => {
+    load();
+    return watchAccounts(() => load());
+  }, [load]);
+  const bizName = useMemo(() => new Map(data.businesses.map((b) => [b.id, b.name])), [data.businesses]);
+  const pendingBiz = data.businesses.filter((b) => b.status === 'pending');
+  const pendingUsers = data.profiles.filter((p) => p.status === 'pending' && p.role !== 'owner');
+  const open = async (b) => {
+    useLive.setState({ phase: 'loading' });
+    try {
+      await enterApp(profile, { viewBusinessId: b.id });
+      window.location.hash = '#/app';
+    } catch (e) {
+      toast.error('Could not open', e.message);
+    }
+    useLive.setState({ phase: 'in' });
+  };
+
+  return (
+    <div className="min-h-screen bg-cream-100 dark:bg-navy-950">
+      <header className="sticky top-0 z-20 border-b border-white/5 bg-brand-900 text-white">
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-3 px-4 sm:px-6">
+          <Logo dark />
+          <Badge tone="gold" className="ml-1">Super admin</Badge>
+          <div className="ml-auto flex items-center gap-1">
+            <button type="button" onClick={toggleDark} className="rounded-xl p-2 text-brand-100 hover:bg-white/10" aria-label="Dark mode">{dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}</button>
+            <span className="hidden px-2 text-sm sm:block">{profile?.full_name}</span>
+            <button type="button" onClick={() => leave()} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-brand-100 hover:bg-white/10"><LogOut className="h-4 w-4" /> Sign out</button>
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
+        <h1 className="font-display text-3xl font-semibold text-brand-900 dark:text-white">Platform</h1>
+        <p className="mb-5 text-sm text-slate-500">Every farm business and account on PoultryPro</p>
+        <Tabs
+          className="mb-5"
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { value: 'overview', label: 'Overview', icon: LayoutDashboard, count: pendingBiz.length + pendingUsers.length || undefined },
+            { value: 'businesses', label: 'Businesses', icon: Building2, count: data.businesses.length },
+            { value: 'accounts', label: 'Accounts', icon: Users, count: data.profiles.length },
+            { value: 'data', label: 'Data', icon: Database },
+          ]}
+        />
+        {tab === 'overview' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+              <StatCard label="Farm businesses" value={data.businesses.filter((b) => b.status === 'active').length} icon={Building2} tone="brand" sub={`${data.businesses.length} registered`} />
+              <StatCard label="Businesses waiting" value={pendingBiz.length} icon={Hourglass} tone="gold" onClick={() => setTab('businesses')} />
+              <StatCard label="Accounts" value={data.profiles.filter((p) => p.status === 'active').length} icon={Users} tone="teal" sub={`${pendingUsers.length} waiting for their farm owner`} />
+              <StatCard label="Suspended" value={data.profiles.filter((p) => p.status === 'suspended').length + data.businesses.filter((b) => b.status === 'suspended').length} icon={PauseCircle} tone="red" sub="accounts + businesses" />
+            </div>
+            <Card>
+              <CardHeader title="Businesses waiting for approval" icon={Hourglass} />
+              <div className="space-y-2 p-4">
+                {!pendingBiz.length && <EmptyState icon={CheckCircle2} title="Nothing waiting" text="New farm business registrations appear here instantly." />}
+                {pendingBiz.map((b) => {
+                  const owner = data.profiles.find((p) => p.user_id === b.owner_id);
+                  return (
+                    <div key={b.id} className="flex flex-col gap-3 rounded-2xl border border-cream-200 p-4 sm:flex-row sm:items-center dark:border-white/10">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold">{b.name} {b.is_test && <Badge tone="violet">Test</Badge>}</p>
+                        <p className="text-xs text-slate-500">{b.location} · owner {owner?.full_name} ({owner?.phone}) · {fmtDateTime(b.created_at)}</p>
+                      </div>
+                      <BusinessActions b={b} onDone={load} onOpen={open} />
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+            <Card>
+              <CardHeader title="Recent activity" />
+              <div className="max-h-96 divide-y divide-cream-200 overflow-y-auto px-5 pb-3 text-sm dark:divide-white/5">
+                {data.audit.slice(0, 40).map((a) => (
+                  <div key={a.id} className="flex gap-3 py-2"><span className="w-36 shrink-0 text-xs text-slate-400">{fmtDateTime(a.at)}</span><span><b>{a.action}</b> · {a.detail}{a.business_id ? <span className="text-slate-400"> · {bizName.get(a.business_id)}</span> : ''}</span></div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        )}
+        {tab === 'businesses' && (
+          <DataTable
+            rows={data.businesses}
+            searchText={(b) => `${b.name} ${b.location} ${b.farm_code}`}
+            columns={[
+              { key: 'name', label: 'Business', render: (b) => <div><p className="font-semibold">{b.name}</p><p className="text-xs text-slate-400">{b.location} · code {b.farm_code}</p></div> },
+              { key: 'owner', label: 'Owner', render: (b) => { const o = data.profiles.find((p) => p.user_id === b.owner_id); return o ? <div><p>{o.full_name}</p><p className="text-xs text-slate-400">{o.phone}</p></div> : '—'; } },
+              { key: 'people', label: 'Accounts', sort: (b) => data.profiles.filter((p) => p.business_id === b.id).length, render: (b) => data.profiles.filter((p) => p.business_id === b.id).length, hideOnMobile: true },
+              { key: 'status', label: 'Status', render: (b) => <Badge tone={STATUS[b.status].tone} dot>{b.status === 'pending' ? 'Waiting' : STATUS[b.status].label}</Badge> },
+              { key: 'is_test', label: 'Test', render: (b) => <input type="checkbox" className="h-4 w-4 accent-brand-600" checked={b.is_test} onChange={async (e) => { try { await setBusinessTest(b.id, e.target.checked); load(); } catch (err) { toast.error(err.message); } }} aria-label="Test business" /> },
+              { key: 'x', label: '', nosort: true, render: (b) => <BusinessActions b={b} onDone={load} onOpen={open} /> },
+            ]}
+          />
+        )}
+        {tab === 'accounts' && (
+          <DataTable
+            rows={data.profiles.filter((p) => p.user_id !== profile?.user_id)}
+            searchText={(p) => `${p.full_name} ${p.phone} ${bizName.get(p.business_id) || ''} ${p.role}`}
+            columns={[
+              { key: 'full_name', label: 'Name', render: (p) => <div className="flex items-center gap-3"><Avatar name={p.full_name} size="sm" /><div><p className="font-semibold">{p.full_name} {p.is_test && <Badge tone="violet">Test</Badge>}</p><p className="text-xs text-slate-400">{p.phone}</p></div></div> },
+              { key: 'role', label: 'Role', render: (p) => roleLabel(p.role) },
+              { key: 'business', label: 'Business', sort: (p) => bizName.get(p.business_id) || '', render: (p) => bizName.get(p.business_id) || '—' },
+              { key: 'status', label: 'Status', render: (p) => <Badge tone={STATUS[p.status].tone} dot>{STATUS[p.status].label}</Badge> },
+              { key: 'x', label: '', nosort: true, render: (p) => (p.role === 'owner' ? <span className="text-xs text-slate-400">Managed with the business</span> : <AccountActions p={p} onDone={load} />) },
+            ]}
+          />
+        )}
+        {tab === 'data' && data.settings && <DataTab businesses={data.businesses} profiles={data.profiles} settings={data.settings} reload={load} />}
+      </main>
+      <Toaster />
+    </div>
+  );
+}

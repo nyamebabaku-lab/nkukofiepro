@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { LIVE } from '../../config';
 import { UserPlus, Phone, Pencil, KeyRound } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { useCurrentUser, useMyFarms } from '../../data/selectors';
@@ -36,7 +38,8 @@ export default function Staff() {
 
   return (
     <div>
-      <PageHeader title="Staff" subtitle="Your team, what they can access and where they work" actions={<><Segmented options={[{ value: 'all', label: 'All' }, ...farms.map((f) => ({ value: f.id, label: f.short }))]} value={farm} onChange={setFarm} /><Button icon={UserPlus} onClick={() => setEdit({ role: 'worker', status: 'active', farmIds: farm === 'all' ? [farms[0]?.id] : [farm], password: 'demo123', salary: 1600 })}>Add staff</Button></>} />
+      <PageHeader title="Staff" subtitle="Your team, what they can access and where they work" actions={<><Segmented options={[{ value: 'all', label: 'All' }, ...farms.map((f) => ({ value: f.id, label: f.short }))]} value={farm} onChange={setFarm} />{LIVE ? (isOwner && <Link to="/app/accounts"><Button icon={UserPlus}>Invite & approve</Button></Link>) : <Button icon={UserPlus} onClick={() => setEdit({ role: 'worker', status: 'active', farmIds: farm === 'all' ? [farms[0]?.id] : [farm], password: 'demo123', salary: 1600 })}>Add staff</Button>}</>} />
+      {LIVE && <p className="-mt-3 mb-5 text-sm text-slate-500">New workers and managers create their own account in the PoultryPro app with your farm code{isOwner ? ' — approve them on Accounts & approvals.' : '.'} Here you set their job title, pay and farms.</p>}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {staff.map((u) => {
           const att = todayAttendance(db, u.id);

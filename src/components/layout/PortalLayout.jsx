@@ -5,6 +5,8 @@ import { useCart, useDB, useSession } from '../../data/store';
 import { useCurrentCustomer, useCurrentUser, notificationsFor } from '../../data/selectors';
 import { Button, cx } from '../ui';
 import Logo from './Logo';
+import { LIVE } from '../../config';
+import { leave } from '../../modules/live/useLive';
 import { isNative, APK_URL } from '../../data/native';
 
 export default function PortalLayout() {
@@ -12,6 +14,11 @@ export default function PortalLayout() {
   const staff = useCurrentUser();
   const lines = useCart((s) => s.lines);
   const { dark, toggleDark, logout } = useSession();
+  const signOut = () => {
+    if (LIVE) return leave();
+    logout();
+    return navigate('/');
+  };
   const db = useDB();
   const [open, setOpen] = useState(false);
   const loc = useLocation();
@@ -52,7 +59,7 @@ export default function PortalLayout() {
             {staff ? (
               <Link to="/app" className="ml-1 hidden sm:block"><Button size="sm" icon={LayoutDashboard}>Farm dashboard</Button></Link>
             ) : customer ? (
-              <button type="button" onClick={() => { logout(); navigate('/'); }} className="ml-1 hidden items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-cream-200 dark:text-slate-300 dark:hover:bg-white/10 sm:flex"><LogOut className="h-4 w-4" /> Sign out</button>
+              <button type="button" onClick={signOut} className="ml-1 hidden items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-cream-200 dark:text-slate-300 dark:hover:bg-white/10 sm:flex"><LogOut className="h-4 w-4" /> Sign out</button>
             ) : (
               <Link to="/login" state={{ customer: true }} className="ml-1 hidden sm:block"><Button size="sm" icon={User}>Sign in</Button></Link>
             )}
@@ -62,7 +69,7 @@ export default function PortalLayout() {
         {open && (
           <div className="animate-fade-in border-t border-cream-200 px-4 py-3 dark:border-white/5 md:hidden">
             {links.map((l) => <NavLink key={l.to} to={l.to} end={l.end} className="block rounded-xl px-3 py-2.5 text-sm font-semibold">{l.label}</NavLink>)}
-            {staff ? <NavLink to="/app" className="block rounded-xl px-3 py-2.5 text-sm font-semibold">Farm dashboard</NavLink> : customer ? <button type="button" className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold" onClick={() => { logout(); navigate('/'); }}>Sign out</button> : <NavLink to="/login" state={{ customer: true }} className="block rounded-xl px-3 py-2.5 text-sm font-semibold">Sign in / Register</NavLink>}
+            {staff ? <NavLink to="/app" className="block rounded-xl px-3 py-2.5 text-sm font-semibold">Farm dashboard</NavLink> : customer ? <button type="button" className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold" onClick={signOut}>Sign out</button> : <NavLink to="/login" state={{ customer: true }} className="block rounded-xl px-3 py-2.5 text-sm font-semibold">Sign in / Register</NavLink>}
           </div>
         )}
       </header>

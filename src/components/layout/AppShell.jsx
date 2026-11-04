@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Bell, Moon, Sun, LogOut, ChevronsLeft, ChevronsRight, Search, Plus, Store, ChevronDown, MapPin, WifiOff, Download, Check, MoreHorizontal } from 'lucide-react';
+import { Eye, Menu, X, Bell, Moon, Sun, LogOut, ChevronsLeft, ChevronsRight, Search, Plus, Store, ChevronDown, MapPin, WifiOff, Download, Check, MoreHorizontal } from 'lucide-react';
 import { useDB, useSession } from '../../data/store';
 import { useCurrentUser, useMyFarms, useFarmScope, notificationsFor } from '../../data/selectors';
 import { navFor, navItem, MOBILE_TABS, ROLES } from '../../lib/nav';
@@ -9,6 +9,9 @@ import { isNative, APK_URL } from '../../data/native';
 import { Avatar, Badge, Modal, cx, toast } from '../ui';
 import QuickLog, { useQuickLog } from '../QuickLog';
 import Logo from './Logo';
+import { LIVE } from '../../config';
+import { leave } from '../../modules/live/useLive';
+import { enterApp } from '../../lib/accounts';
 
 function SidebarNav({ role, collapsed, onNavigate }) {
   return (
@@ -208,9 +211,14 @@ export default function AppShell() {
   const unread = notificationsFor(user, null, notifications).filter((n) => !n.read).length;
   const tabs = (MOBILE_TABS[user.role] || ['dashboard']).map((k) => navItem(k)).filter(Boolean);
   const signOut = () => {
+    if (LIVE) return leave();
     logout();
     toast.info('Signed out');
-    navigate('/login');
+    return navigate('/login');
+  };
+  const backToPlatform = async () => {
+    await enterApp(useSession.getState().profile, { viewBusinessId: null });
+    navigate('/platform');
   };
   const title = navFor(user.role).flatMap((g) => g.items).find((i) => (i.path === '/app' ? loc.pathname === '/app' : loc.pathname.startsWith(i.path)))?.label || 'PoultryPro';
 
@@ -277,7 +285,8 @@ export default function AppShell() {
                         <p className="text-sm font-bold text-slate-900 dark:text-white">{user.name}</p>
                         <p className="text-xs text-slate-500">{user.position}</p>
                       </div>
-                      <Link to="/" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-cream-100 dark:text-slate-200 dark:hover:bg-white/5"><Store className="h-4 w-4" /> Open customer shop</Link>
+                      {!LIVE && <Link to="/" className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-cream-100 dark:text-slate-200 dark:hover:bg-white/5"><Store className="h-4 w-4" /> Open customer shop</Link>}
+                      {user.readOnly && <button type="button" onClick={backToPlatform} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-cream-100 dark:text-slate-200 dark:hover:bg-white/5"><Eye className="h-4 w-4" /> Back to platform</button>}
                       <button type="button" onClick={signOut} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-accent-700 hover:bg-accent-50 dark:text-accent-300 dark:hover:bg-accent-500/10"><LogOut className="h-4 w-4" /> Sign out</button>
                     </div>
                   </>
@@ -288,6 +297,13 @@ export default function AppShell() {
         </header>
 
         <main className="mx-auto w-full max-w-[1400px] animate-fade-in px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-10">
+          {user.readOnly && (
+            <div className="no-print mb-5 flex flex-wrap items-center gap-3 rounded-2xl bg-gold-100 p-3 pl-4 text-sm text-gold-900 ring-1 ring-gold-300 dark:bg-gold-500/15 dark:text-gold-200">
+              <Eye className="h-5 w-5 shrink-0" />
+              <p className="min-w-0 flex-1"><b>Read-only support view.</b> You are looking at this farm business as the super admin — changes you make here are not saved.</p>
+              <button type="button" onClick={backToPlatform} className="rounded-xl bg-brand-700 px-3 py-1.5 text-xs font-bold text-white">Back to platform</button>
+            </div>
+          )}
           <InstallBanner />
           <Outlet />
         </main>

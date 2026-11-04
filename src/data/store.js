@@ -1,11 +1,12 @@
 // Single client-side data store. All reads/writes go through these actions,
-// so swapping localStorage for a cloud backend (Supabase) later only touches this file.
+// In the live apps, src/data/sync.js mirrors every change to Supabase; the demo stays in localStorage.
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { buildSeed } from './seed';
+import { buildSeed, buildEmpty } from './seed';
+import { LIVE, storeKey } from '../config';
 import { uid, nowISO } from '../lib/format';
 
-export const DB_KEY = 'poultrypro-db';
+export const DB_KEY = storeKey('poultrypro-db');
 export const DB_VERSION = 1;
 
 const PREFIX = {
@@ -38,7 +39,7 @@ const sessionUser = () => useSession.getState().userId;
 export const useDB = create(
   persist(
     (set) => ({
-      ...buildSeed(),
+      ...(LIVE ? buildEmpty() : buildSeed()),
 
       add: (col, obj) => {
         const rec = { id: uid(PREFIX[col] || 'id'), createdAt: nowISO(), ...obj };
@@ -64,8 +65,10 @@ export const useDB = create(
       /** Simulated SMS (phase 2 sends these through an SMS gateway). */
       sms: (to, text) => set((s) => ({ smsLog: [{ id: uid('sms'), at: nowISO(), to, text, status: 'sent' }, ...s.smsLog].slice(0, 300) })),
 
-      resetDemo: () => set({ ...buildSeed() }),
-      importData: (data) => set({ ...buildSeed(), ...data }),
+      resetDemo: () => set({ ...(LIVE ? buildEmpty() : buildSeed()) }),
+      importData: (data) => set({ ...(LIVE ? buildEmpty() : buildSeed()), ...data }),
+      /** Live apps: replace everything with what was loaded for the signed-in business. */
+      loadBusiness: (data) => set({ ...buildEmpty(), ...data }),
     }),
     {
       name: DB_KEY,
@@ -82,17 +85,21 @@ export const useSession = create(
     (set) => ({
       userId: null, // staff user id
       customerId: null, // customer portal login
+      // Live apps: the signed-in account (from Supabase profiles).
+      profile: null,
+      viewBusinessId: null, // super admin looking at a business read-only
       farmId: 'all',
       dark: false,
       sidebarCollapsed: false,
       login: (userId) => set({ userId, customerId: null }),
       loginCustomer: (customerId) => set({ customerId, userId: null }),
-      logout: () => set({ userId: null, customerId: null, farmId: 'all' }),
+      logout: () => set({ userId: null, customerId: null, farmId: 'all', profile: null, viewBusinessId: null }),
+      setProfile: (profile) => set({ profile }),
       setFarm: (farmId) => set({ farmId }),
       toggleDark: () => set((s) => ({ dark: !s.dark })),
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
     }),
-    { name: 'poultrypro-session' },
+    { name: storeKey('poultrypro-session') },
   ),
 );
 
@@ -111,6 +118,6 @@ export const useCart = create(
       setQty: (productId, qty) => set((s) => ({ lines: qty <= 0 ? s.lines.filter((l) => l.productId !== productId) : s.lines.map((l) => (l.productId === productId ? { ...l, qty } : l)) })),
       clear: () => set({ lines: [] }),
     }),
-    { name: 'poultrypro-cart' },
+    { name: storeKey('poultrypro-cart') },
   ),
 );

@@ -80,7 +80,10 @@ export function pickupCheck(db, farmId, date) {
   const dow = parseISO(date).getDay();
   if (!(s.openDays || []).includes(dow)) return { ok: false, reason: 'The farm is closed on that day' };
   if ((s.blockedDates || []).includes(date)) return { ok: false, reason: 'The farm is closed on that date' };
-  const booked = db.orders.filter((o) => o.farmId === farmId && o.pickupDate === date && o.status !== 'cancelled' && o.channel === 'portal').length;
+  const counted = db.orders.filter((o) => o.farmId === farmId && o.pickupDate === date && o.status !== 'cancelled' && o.channel === 'portal');
+  // Customers only see their own orders, so add the farm's published booking count.
+  const snap = db.customerView ? db.shopStock?.[0] : null;
+  const booked = snap ? (snap.bookings?.[`${farmId}|${date}`] || 0) + counted.filter((o) => o.createdAt > snap.at).length : counted.length;
   if (booked >= (s.pickupCapacity || 30)) return { ok: false, reason: 'That day is fully booked — please pick another' };
   return { ok: true, left: (s.pickupCapacity || 30) - booked };
 }

@@ -1,4 +1,6 @@
+import { MODE } from '../config';
 import {
+  UserCheck,
   LayoutDashboard, ClipboardPen, Warehouse, Bird, Syringe, Egg, Package, ShoppingBag, Store, CalendarClock, Users, Tags,
   LineChart, Wallet, Banknote, UserCog, ListChecks, Clock, Wrench, BarChart3, Settings, Bell,
 } from 'lucide-react';
@@ -38,6 +40,7 @@ export const NAV = [
     { key: 'tasks', label: 'Tasks', path: '/app/tasks', icon: ListChecks },
     { key: 'attendance', label: 'Attendance', path: '/app/attendance', icon: Clock },
     { key: 'maintenance', label: 'Equipment', path: '/app/maintenance', icon: Wrench },
+    ...(import.meta.env.VITE_APP === 'admin' ? [{ key: 'accounts', label: 'Accounts & approvals', path: '/app/accounts', icon: UserCheck }] : []),
   ] },
   { group: 'Insights', items: [
     { key: 'reports', label: 'Reports', path: '/app/reports', icon: BarChart3 },

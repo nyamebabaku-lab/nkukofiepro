@@ -9,15 +9,21 @@ import '@fontsource/fraunces/500.css';
 import '@fontsource/fraunces/600.css';
 import '@fontsource/fraunces/700.css';
 import './index.css';
-import App from './App';
+import { MODE } from './config';
 import { startOfflineServices } from './data/offline';
 import { isNative, startNative } from './data/native';
 
 if (!isNative()) startOfflineServices();
 startNative();
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+// Each build only contains its own app (the other branches are removed at build time).
+const load = import.meta.env.VITE_APP === 'admin' ? () => import('./apps/AdminApp') : import.meta.env.VITE_APP === 'main' ? () => import('./apps/MainApp') : () => import('./apps/DemoApp');
+document.title = MODE === 'admin' ? 'PoultryPro Admin' : MODE === 'main' ? 'PoultryPro' : 'PoultryPro — Demo';
+
+load().then(({ default: App }) =>
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  ),
 );

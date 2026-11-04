@@ -1,4 +1,4 @@
-name: Build Android app
+name: Build Android apps
 
 on:
   push:
@@ -13,8 +13,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  apk:
+  apks:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+      VERSION_CODE: ${{ github.run_number }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,31 +32,34 @@ jobs:
           distribution: temurin
           java-version: 21
       - run: npm ci
-      - run: npm run build
-      - run: npx cap sync android
 
       - name: Restore signing key
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/upload.p12
-
-      - name: Build signed APK and Play Store bundle
-        working-directory: android
-        env:
-          VERSION_CODE: ${{ github.run_number }}
-          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload.p12
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon assembleRelease bundleRelease
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/upload.p12
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.p12" >> $GITHUB_ENV
+
+      - name: PoultryPro (customers, workers, managers)
+        run: |
+          VITE_APP=main OUT_DIR=build/main npx vite build
+          APP=main npx cap sync android
+          cd android && chmod +x gradlew && ./gradlew --no-daemon assembleRelease bundleRelease
           cp app/build/outputs/apk/release/app-release.apk ../PoultryPro.apk
           cp app/build/outputs/bundle/release/app-release.aab ../PoultryPro.aab
 
-      - name: Publish release (download link always points to the newest)
+      - name: PoultryPro Admin (owners, super admin)
+        run: |
+          VITE_APP=admin OUT_DIR=build/admin npx vite build
+          APP=admin npx cap sync android
+          cd android-admin && chmod +x gradlew && ./gradlew --no-daemon assembleRelease bundleRelease
+          cp app/build/outputs/apk/release/app-release.apk ../PoultryPro-Admin.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../PoultryPro-Admin.aab
+
+      - name: Publish release (download links always point to the newest)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="android-v1.0.${{ github.run_number }}"
-          gh release create "$TAG" PoultryPro.apk PoultryPro.aab \
+          gh release create "$TAG" PoultryPro.apk PoultryPro-Admin.apk PoultryPro.aab PoultryPro-Admin.aab \
             --title "PoultryPro Android 1.0.${{ github.run_number }}" \
-            --notes "Install PoultryPro.apk on Android (allow 'Install unknown apps' when asked). PoultryPro.aab is for the Google Play Store." \
+            --notes "PoultryPro.apk — customers, farm workers and managers. PoultryPro-Admin.apk — farm owners and the platform admin. Allow 'Install unknown apps' when asked. The .aab files are for the Google Play Store." \
             --latest

@@ -95,6 +95,7 @@ let pcache = { refs: [], value: null };
  *  - manual: stock added by hand (productMoves) minus everything sold or reserved
  */
 export function productIndex(db) {
+  if (db.customerView) return customerStock(db);
   const refs = [db.products, db.orders, db.eggLogs, db.productMoves, db.flocks, db.mortality, db.flockMoves];
   if (pcache.value && refs.every((r, i) => r === pcache.refs[i])) return pcache.value;
   const prod = new Map(db.products.map((p) => [p.id, p]));
@@ -134,6 +135,26 @@ export function productIndex(db) {
     }
   }
   pcache = { refs, value: out };
+  return out;
+}
+
+/**
+ * Live customer app: customers can't read other people's orders, so availability comes from the
+ * snapshot the farm's staff app publishes (sync.js), less this customer's own newer bookings.
+ */
+function customerStock(db) {
+  const snap = db.shopStock?.[0];
+  const out = new Map();
+  const mine = new Map();
+  db.orders.forEach((o) => {
+    if (o.status === 'cancelled' || !snap || o.createdAt <= snap.at) return;
+    o.lines.forEach((l) => mine.set(`${l.productId}|${o.farmId}`, (mine.get(`${l.productId}|${o.farmId}`) || 0) + l.qty));
+  });
+  for (const p of db.products)
+    for (const f of db.farms) {
+      const k = `${p.id}|${f.id}`;
+      out.set(k, { available: Math.max(0, (snap?.stock?.[k] || 0) - (mine.get(k) || 0)), reserved: 0 });
+    }
   return out;
 }
 

@@ -3,6 +3,7 @@ import { Save, Download, Upload, RotateCcw, Plus, Trash2, Building2, ShoppingBas
 import { useDB } from '../../data/store';
 import { PageHeader, Button, Card, CardHeader, Field, Input, Select, Tabs, DataTable, Badge, IconButton, confirmDialog, toast, cx } from '../../components/ui';
 import { DAYS } from '../../lib/tasks';
+import { LIVE } from '../../config';
 import { fmtDate, fmtDateTime, today } from '../../lib/format';
 
 function Section({ title, icon, children, onSave }) {
@@ -144,8 +145,8 @@ export default function Settings() {
             <CardHeader title="Backup & restore" subtitle="This version keeps data on this device. Download a backup regularly." icon={Database} />
             <div className="flex flex-wrap gap-2 p-5">
               <Button icon={Download} onClick={backup}>Download backup</Button>
-              <Button variant="secondary" icon={Upload} onClick={() => file.current.click()}>Restore backup</Button>
-              <Button variant="soft-red" icon={RotateCcw} onClick={async () => { if (await confirmDialog('Reset to demo data?', 'All your changes on this device will be lost.', { confirmLabel: 'Reset' })) { db.resetDemo(); setS(useDB.getState().settings); toast.success('Demo data restored'); } }}>Reset demo data</Button>
+              {!LIVE && <Button variant="secondary" icon={Upload} onClick={() => file.current.click()}>Restore backup</Button>}
+              {!LIVE && <Button variant="soft-red" icon={RotateCcw} onClick={async () => { if (await confirmDialog('Reset to demo data?', 'All your changes on this device will be lost.', { confirmLabel: 'Reset' })) { db.resetDemo(); setS(useDB.getState().settings); toast.success('Demo data restored'); } }}>Reset demo data</Button>}
               <input ref={file} type="file" accept="application/json" className="hidden" onChange={restore} />
             </div>
           </Card>

@@ -17,6 +17,40 @@ function rng(seed) {
   };
 }
 
+const COLLECTIONS = ['farms', 'pens', 'flocks', 'feedLogs', 'eggLogs', 'weightLogs', 'mortality', 'envLogs', 'flockMoves', 'vaccinations', 'treatments', 'hatchBatches',
+  'items', 'stockMoves', 'suppliers', 'products', 'productMoves', 'customers', 'orders', 'payments', 'walletTx', 'expenses',
+  'users', 'tasks', 'taskRuns', 'attendance', 'advances', 'payruns', 'assets', 'maintenance', 'notifications', 'smsLog', 'audit', 'shopStock'];
+
+/** Default settings for a new, real business (also the base the demo builds on). */
+export const defaultSettings = () => ({
+  businessName: 'My Poultry Farm',
+  tagline: 'Fresh eggs, healthy birds, straight from the farm',
+  phone: '',
+  email: '',
+  currency: 'GH₵',
+  depositPct: 30,
+  pickupCapacity: 25,
+  openDays: [1, 2, 3, 4, 5, 6],
+  blockedDates: [],
+  pickupHours: '7:00 am – 5:00 pm',
+  mortalityAlertPct: 0.3,
+  tempMin: 18,
+  tempMax: 32,
+  humidityMax: 80,
+  lowLayDrop: 5,
+  withdrawalPin: '1234',
+  minWithdrawal: 10,
+  ssnitPct: 5.5,
+  feedBagKg: 50,
+  allowCashBooking: true,
+  cashHoldHours: 24,
+});
+
+/** An empty business: no farms, flocks or people yet. */
+export function buildEmpty() {
+  return { ...Object.fromEntries(COLLECTIONS.map((c) => [c, []])), settings: defaultSettings(), vaccineTemplates: DEFAULT_TEMPLATES };
+}
+
 export function buildSeed() {
   const R = rng(20261104);
   const between = (a, b) => a + R() * (b - a);
@@ -46,6 +80,7 @@ export function buildSeed() {
 
   // ---------------- Settings ----------------
   const settings = {
+    ...defaultSettings(),
     businessName: 'PoultryPro Farms',
     tagline: 'Fresh eggs, healthy birds, straight from the farm',
     phone: '0302 123 456',
@@ -666,7 +701,7 @@ export function buildSeed() {
     items, stockMoves, suppliers, products, productMoves,
     customers, orders, payments, walletTx, expenses,
     users, tasks, taskRuns, attendance, advances, payruns, assets, maintenance,
-    notifications, smsLog: [], audit: [],
+    notifications, smsLog: [], audit: [], shopStock: [],
     seededAt: new Date().toISOString(),
   };
 }
