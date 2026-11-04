@@ -32,6 +32,12 @@ A web app for running several poultry farms (layers, broilers, hatchery, turkeys
 - **Reports**: eggs, mortality, feed, sales, vaccination compliance, CSV export
 - **Customer shop**: browse, choose farm and pick-up day, pay deposit or in full with MoMo/card or cash at the farm
 
+## Android app
+
+Download: https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download/PoultryPro.apk
+
+Every push to `main` builds a signed APK (and a Play Store `.aab`) with Capacitor in GitHub Actions (`.github/workflows/android.yml`) and attaches it to a new GitHub release. The upload signing key is stored in the repository secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`); keep an offline backup of it, as Google Play updates need the same key. App icon and splash sources are in `assets/` and `public/hero/`.
+
 ## Run it locally
 
 ```bash

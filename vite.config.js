@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'PoultryPro — Farm Management',
         short_name: 'PoultryPro',
@@ -30,8 +30,6 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',
-        // Photos are cached the first time they are seen, so they also work offline afterwards.
-        runtimeCaching: [{ urlPattern: /\/photos\/.*\.jpg$/, handler: 'CacheFirst', options: { cacheName: 'photos', expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 180 } } }],
       },
     }),
   ],

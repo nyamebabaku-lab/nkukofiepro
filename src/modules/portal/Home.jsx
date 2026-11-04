@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, CalendarCheck, Smartphone, ShieldCheck, Truck, Leaf, Syringe } from 'lucide-react';
 import { useDB } from '../../data/store';
-import { Button, cx } from '../../components/ui';
-import { Photo } from '../../components/ProductArt';
-import { CATEGORY_PHOTO } from '../../data/media';
+import { Button } from '../../components/ui';
+import HeroPhoto from '../../components/HeroPhoto';
+import { isNative, APK_URL } from '../../data/native';
 import { ProductCard } from './Shop';
 import { PRODUCT_CATEGORIES } from '../../lib/stock';
 
@@ -12,19 +12,18 @@ export default function Home() {
   const featured = ['prd_egg_l', 'prd_broiler', 'prd_doc_b', 'prd_dressed', 'prd_turkey', 'prd_guinea', 'prd_egg_mh', 'prd_layer_bag'].map((id) => db.products.find((p) => p.id === id)).filter((p) => p?.onPortal);
   return (
     <div>
-      <section className="grain hero-glow relative overflow-hidden bg-brand-900 text-white">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.1fr_1fr] md:py-20">
-          <div>
+      <section className="relative overflow-hidden bg-brand-900 text-white">
+        <HeroPhoto />
+        <div className="relative mx-auto flex min-h-[600px] max-w-6xl items-end px-4 pb-12 pt-64 sm:px-6 md:min-h-[600px] md:items-center md:py-20">
+          <div className="max-w-xl">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-gold-300 ring-1 ring-white/10"><Leaf className="h-3.5 w-3.5" /> Straight from our farms in Dodowa, Ejisu & Kasoa</p>
             <h1 className="font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">Fresh eggs & healthy birds, <span className="text-gold-400">booked in a minute.</span></h1>
             <p className="mt-5 max-w-lg text-lg text-brand-100/80">Order eggs, live birds, dressed chicken, chicks, feed and drugs. Choose your pick-up day, pay a small deposit with MoMo or card, and pay the rest when you collect.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/shop"><Button size="lg" className="bg-gold-500 text-brand-950 hover:bg-gold-400" icon={ArrowRight}>Shop now</Button></Link>
               <Link to="/signup"><Button size="lg" variant="secondary" className="bg-white/10 text-white ring-white/20 hover:bg-white/20">Create account</Button></Link>
+              {!isNative() && <a href={APK_URL}><Button size="lg" variant="secondary" icon={Smartphone} className="bg-white/10 text-white ring-white/20 hover:bg-white/20">Android app</Button></a>}
             </div>
-          </div>
-          <div className="relative mx-auto grid w-full max-w-sm grid-cols-2 gap-4">
-            {[['eggs', 'crate'], ['broiler', 'broiler'], ['chicks', 'chick'], ['dressed', 'meat']].map(([k, a], i) => <Photo key={k} k={k} art={a} className={cx('aspect-square w-full shadow-2xl ring-4 ring-white/10', i % 2 ? 'translate-y-6' : '')} rounded="rounded-3xl" />)}
           </div>
         </div>
       </section>
@@ -33,7 +32,7 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
           {PRODUCT_CATEGORIES.map((c) => (
             <Link key={c.value} to={`/shop?cat=${c.value}`} className="flex flex-col items-center gap-2 rounded-2xl bg-white p-4 text-center shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift dark:bg-navy-900">
-              <Photo k={CATEGORY_PHOTO[c.value]} alt={c.label} className="h-16 w-16" rounded="rounded-full" />
+              <span className="text-3xl">{c.emoji}</span>
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{c.label}</span>
             </Link>
           ))}

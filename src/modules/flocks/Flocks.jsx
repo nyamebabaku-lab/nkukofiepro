@@ -7,7 +7,6 @@ import { PageHeader, Button, Tabs, Badge, DataTable, FormModal, Segmented, Card,
 import { flockIndex, ageLabel } from '../../lib/flock';
 import { SPECIES, PURPOSES, speciesLabel, purposeLabel, isLayingType } from '../../lib/standards';
 import { addFlock, nextFlockCode } from '../../lib/health';
-import { flockPhoto } from '../../data/media';
 import { num, today, fmtDate } from '../../lib/format';
 
 export function NewFlockModal({ open, onClose, initial }) {
@@ -86,10 +85,7 @@ export default function Flocks() {
             const fm = farm(f.farmId);
             return (
               <Card key={f.id} className="cursor-pointer overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lift" onClick={() => navigate(`/app/flocks/${f.id}`)}>
-                <div className="relative h-32">
-                  <img src={flockPhoto(f)} alt={f.breed} loading="lazy" className="h-full w-full object-cover" />
-                  <span className="absolute inset-x-0 bottom-0 h-1.5" style={{ background: fm?.color }} />
-                </div>
+                <div className="h-1.5" style={{ background: fm?.color }} />
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-2">
                     <div>

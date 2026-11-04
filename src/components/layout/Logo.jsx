@@ -1,10 +1,6 @@
 import { cx } from '../ui';
 
 export function LogoMark({ className }) {
-  return <img src={`${import.meta.env.BASE_URL}brands/logo-hen.jpg`} alt="" className={cx('h-10 w-10 shrink-0 rounded-[14px] object-cover ring-2 ring-gold-500', className)} />;
-}
-
-export function LogoMarkDrawn({ className }) {
   return (
     <svg viewBox="0 0 48 48" className={cx('h-10 w-10 shrink-0', className)} aria-hidden>
       <rect width="48" height="48" rx="14" fill="#d9a441" />

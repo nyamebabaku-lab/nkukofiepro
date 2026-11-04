@@ -12,7 +12,6 @@ import { itemBalance } from '../lib/stock';
 import { logEggs, logFeed, logMortality, logWeight, logEnv, weighSummary, MORTALITY_CAUSES } from '../lib/records';
 import { vaccineState } from '../lib/vaccines';
 import { markVaccineDone } from '../lib/health';
-import { Photo } from './ProductArt';
 
 export const useQuickLog = create((set) => ({
   open: false,
@@ -23,12 +22,12 @@ export const useQuickLog = create((set) => ({
 }));
 
 export const LOG_KINDS = [
-  { key: 'eggs', photo: 'collect', label: 'Eggs', icon: Egg, tone: 'bg-gold-500 text-brand-950', text: 'Collected eggs' },
-  { key: 'feed', photo: 'feed', label: 'Feed & water', icon: Wheat, tone: 'bg-brand-700 text-white', text: 'Feed given' },
-  { key: 'deaths', photo: 'coop', label: 'Deaths / culls', icon: HeartCrack, tone: 'bg-accent-600 text-white', text: 'Birds lost' },
-  { key: 'weight', photo: 'weigh', label: 'Weigh birds', icon: Scale, tone: 'bg-teal-700 text-white', text: 'Sample weights' },
-  { key: 'env', photo: 'thermo', label: 'House check', icon: Thermometer, tone: 'bg-orange-500 text-white', text: 'Temp & humidity' },
-  { key: 'vaccine', photo: 'vaccinate', label: 'Vaccination', icon: Syringe, tone: 'bg-sky-600 text-white', text: 'Mark as given' },
+  { key: 'eggs', label: 'Eggs', icon: Egg, tone: 'bg-gold-500 text-brand-950', text: 'Collected eggs' },
+  { key: 'feed', label: 'Feed & water', icon: Wheat, tone: 'bg-brand-700 text-white', text: 'Feed given' },
+  { key: 'deaths', label: 'Deaths / culls', icon: HeartCrack, tone: 'bg-accent-600 text-white', text: 'Birds lost' },
+  { key: 'weight', label: 'Weigh birds', icon: Scale, tone: 'bg-teal-700 text-white', text: 'Sample weights' },
+  { key: 'env', label: 'House check', icon: Thermometer, tone: 'bg-orange-500 text-white', text: 'Temp & humidity' },
+  { key: 'vaccine', label: 'Vaccination', icon: Syringe, tone: 'bg-sky-600 text-white', text: 'Mark as given' },
 ];
 
 function FlockPicker({ flocks, value, onChange }) {
@@ -140,13 +139,11 @@ export default function QuickLog() {
       return (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {LOG_KINDS.map((k) => (
-            <button key={k.key} type="button" onClick={() => show(k.key, flockId)} className="group relative h-32 overflow-hidden rounded-2xl text-left shadow-soft transition hover:-translate-y-0.5 hover:shadow-lift active:scale-[.98] sm:h-36">
-              <Photo k={k.photo} className="absolute inset-0 h-full w-full transition duration-500 group-hover:scale-105" rounded="rounded-none" />
-              <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-              <span className={cx('absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl shadow-lg', k.tone)}><k.icon className="h-5 w-5" /></span>
-              <span className="absolute inset-x-3 bottom-3">
-                <span className="block text-sm font-bold text-white">{k.label}</span>
-                <span className="block text-xs text-white/75">{k.text}</span>
+            <button key={k.key} type="button" onClick={() => show(k.key, flockId)} className="group flex flex-col items-start gap-3 rounded-2xl border border-cream-200 bg-cream-50 p-4 text-left transition hover:-translate-y-0.5 hover:shadow-lift active:scale-[.98] dark:border-white/10 dark:bg-white/5">
+              <span className={cx('flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg', k.tone)}><k.icon className="h-6 w-6" /></span>
+              <span>
+                <span className="block text-sm font-bold text-slate-900 dark:text-white">{k.label}</span>
+                <span className="block text-xs text-slate-500">{k.text}</span>
               </span>
             </button>
           ))}

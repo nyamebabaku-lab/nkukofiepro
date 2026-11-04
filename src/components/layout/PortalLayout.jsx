@@ -5,6 +5,7 @@ import { useCart, useDB, useSession } from '../../data/store';
 import { useCurrentCustomer, useCurrentUser, notificationsFor } from '../../data/selectors';
 import { Button, cx } from '../ui';
 import Logo from './Logo';
+import { isNative, APK_URL } from '../../data/native';
 
 export default function PortalLayout() {
   const customer = useCurrentCustomer();
@@ -77,7 +78,7 @@ export default function PortalLayout() {
             <p className="font-semibold text-white">Talk to us</p>
             <p className="flex items-center gap-2 text-brand-100/70"><Phone className="h-4 w-4" /> {db.settings.phone}</p>
             <p className="text-brand-100/70">Pick-ups {db.settings.pickupHours}, Mon–Sat</p>
-            <p className="flex gap-4 pt-2 text-xs font-semibold"><Link to="/login" className="text-gold-400 hover:underline">Staff sign in →</Link><Link to="/credits" className="text-brand-100/60 hover:underline">Photo credits</Link></p>
+            <p className="flex flex-wrap gap-4 pt-2 text-xs font-semibold"><Link to="/login" className="text-gold-400 hover:underline">Staff sign in →</Link>{!isNative() && <a href={APK_URL} className="text-gold-400 hover:underline">Download Android app ↓</a>}</p>
           </div>
         </div>
       </footer>

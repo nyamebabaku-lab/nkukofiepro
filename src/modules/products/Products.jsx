@@ -3,14 +3,15 @@ import { Plus, Pencil, PackagePlus, Eye, EyeOff, ImagePlus, Trash2 } from 'lucid
 import { useDB } from '../../data/store';
 import { useFarmScope, useMyFarms } from '../../data/selectors';
 import { PageHeader, Button, Card, Badge, Segmented, FormModal, Modal, Field, Input, Select, IconButton, toast, cx } from '../../components/ui';
-import { ProductImage, ART_OPTIONS } from '../../components/ProductArt';
+import ProductArt, { ART_OPTIONS } from '../../components/ProductArt';
 import { PRODUCT_CATEGORIES, UNITS, EGG_SIZES, productStock, categoryLabel } from '../../lib/stock';
 import { SPECIES, PURPOSES } from '../../lib/standards';
-import { savePhoto, resizeImage } from '../../data/photos';
+import { usePhoto, savePhoto, resizeImage } from '../../data/photos';
 import { money, num, today } from '../../lib/format';
 
 function Thumb({ p, className }) {
-  return <ProductImage p={p} className={className} />;
+  const photo = usePhoto(p.hasPhoto ? `product:${p.id}` : null);
+  return <ProductArt art={p.art} photo={photo} className={className} />;
 }
 
 function PhotoPicker({ product }) {
@@ -90,7 +91,7 @@ export default function Products() {
   return (
     <div>
       <PageHeader title="Products & prices" subtitle="What customers can buy, at what price, and how much is available" actions={<Button icon={Plus} onClick={() => setEdit({ category: 'other', unit: 'piece', stockMode: 'manual', onPortal: true, art: 'crate', farmIds: farms.map((f) => f.id) })}>New product</Button>} />
-      <Segmented className="mb-5 flex-wrap" options={[{ value: 'all', label: 'All' }, ...PRODUCT_CATEGORIES.map((c) => ({ value: c.value, label: c.label }))]} value={cat} onChange={setCat} />
+      <Segmented className="mb-5 flex-wrap" options={[{ value: 'all', label: 'All' }, ...PRODUCT_CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` }))]} value={cat} onChange={setCat} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {list.map((p) => {
           const st = productStock(db, p.id, scope);

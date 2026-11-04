@@ -1,8 +1,6 @@
 // Flat illustrations for products (used when no photo is uploaded).
 import { cx } from './ui';
-import { useState } from 'react';
 import { usePhoto } from '../data/photos';
-import { photo, productPhoto } from '../data/media';
 
 const BG = {
   crate: 'from-gold-100 to-gold-200', halfcrate: 'from-gold-100 to-gold-200', cracked: 'from-cream-100 to-cream-300',
@@ -204,17 +202,7 @@ export default function ProductArt({ art = 'crate', photo, className, rounded = 
 export const ART_OPTIONS = Object.keys(ART);
 
 /** Product picture: uploaded photo if there is one, otherwise the illustration. */
-export function ProductImage({ p, className, rounded = 'rounded-2xl' }) {
-  const uploaded = usePhoto(p.hasPhoto ? `product:${p.id}` : null);
-  const [failed, setFailed] = useState(false);
-  if (uploaded) return <ProductArt photo={uploaded} className={className} rounded={rounded} />;
-  if (failed) return <ProductArt art={p.art} className={className} rounded={rounded} />;
-  return <img src={productPhoto(p)} alt={p.name} loading="lazy" onError={() => setFailed(true)} className={cx('object-cover', rounded, className)} />;
-}
-
-/** A stock photo by key (see data/media.js), with the illustration as a fallback. */
-export function Photo({ k, alt = '', className, rounded = 'rounded-2xl', art }) {
-  const [failed, setFailed] = useState(false);
-  if (failed && art) return <ProductArt art={art} className={className} rounded={rounded} />;
-  return <img src={photo(k)} alt={alt} loading="lazy" onError={() => setFailed(true)} className={cx('object-cover', rounded, className)} />;
+export function ProductImage({ p, className, rounded }) {
+  const photo = usePhoto(p.hasPhoto ? `product:${p.id}` : null);
+  return <ProductArt art={p.art} photo={photo} className={className} rounded={rounded} />;
 }

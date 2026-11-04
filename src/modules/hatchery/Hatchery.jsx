@@ -6,7 +6,6 @@ import { useCurrentUser, useInScope, useMyFarms } from '../../data/selectors';
 import { PageHeader, Button, Card, Badge, Progress, FormModal, Modal, Field, Input, Select, Segmented, StatCard, DataTable, toast } from '../../components/ui';
 import { hatchDue, candleDue, recordHatch, INCUBATION_DAYS, nextFlockCode } from '../../lib/health';
 import { SPECIES, speciesLabel } from '../../lib/standards';
-import { photo } from '../../data/media';
 import { fmtDate, num, today, sum } from '../../lib/format';
 
 const STATUS = { incubating: { label: 'Incubating', tone: 'sky' }, candled: { label: 'Candled', tone: 'gold' }, closed: { label: 'Hatched', tone: 'green' } };
@@ -82,8 +81,7 @@ export default function Hatchery() {
           const due = hatchDue(b);
           const cd = candleDue(b);
           return (
-            <Card key={b.id} className="overflow-hidden p-5">
-              <img src={photo(b.species === 'guinea' ? 'keets' : 'incubator')} alt="" loading="lazy" className="-mx-5 -mt-5 mb-4 h-28 w-[calc(100%+2.5rem)] max-w-none object-cover" />
+            <Card key={b.id} className="p-5">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-display text-xl font-semibold text-brand-900 dark:text-white">{b.code}</p>

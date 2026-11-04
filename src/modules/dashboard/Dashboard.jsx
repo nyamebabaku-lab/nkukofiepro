@@ -6,8 +6,6 @@ import { useCurrentUser, useFarmScope, useInScope, useMyFarms } from '../../data
 import { Card, CardHeader, StatCard, Badge, Button, Progress, Input, Segmented, toast, cx } from '../../components/ui';
 import { TrendChart, Bars } from '../../components/charts';
 import { useQuickLog, LOG_KINDS } from '../../components/QuickLog';
-import { Photo } from '../../components/ProductArt';
-import { flockPhoto } from '../../data/media';
 import { money, moneyShort, num, today, dayKey, lastDays, sum, fmtDate } from '../../lib/format';
 import { activeFlocks, flockIndex, goodEggs, ageLabel } from '../../lib/flock';
 import { isLayingType, speciesLabel, purposeLabel } from '../../lib/standards';
@@ -109,8 +107,7 @@ function FlockCards({ db, flocks }) {
           return (
             <Link key={f.id} to={`/app/flocks/${f.id}`} className="rounded-2xl border border-cream-200 p-4 transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-soft dark:border-white/10">
               <div className="flex items-start justify-between gap-2">
-                <img src={flockPhoto(f)} alt="" loading="lazy" className="h-11 w-11 shrink-0 rounded-xl object-cover" />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <p className="font-bold text-slate-900 dark:text-white">{f.code}</p>
                   <p className="truncate text-xs text-slate-500">{f.breed} · {db.pens.find((p) => p.id === f.penId)?.name}</p>
                 </div>
@@ -270,11 +267,9 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:hidden">
         {LOG_KINDS.map((k) => (
-          <button key={k.key} type="button" onClick={() => show(k.key)} className="relative h-24 overflow-hidden rounded-2xl text-left shadow-soft active:scale-[.98]">
-            <Photo k={k.photo} className="absolute inset-0 h-full w-full" rounded="rounded-none" />
-            <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <span className={cx('absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg', k.tone)}><k.icon className="h-4 w-4" /></span>
-            <span className="absolute inset-x-2 bottom-2 text-[11px] font-bold leading-tight text-white">{k.label}</span>
+          <button key={k.key} type="button" onClick={() => show(k.key)} className="flex flex-col items-center gap-1.5 rounded-2xl bg-white p-3 text-center shadow-soft dark:bg-navy-900">
+            <span className={cx('flex h-10 w-10 items-center justify-center rounded-xl', k.tone)}><k.icon className="h-5 w-5" /></span>
+            <span className="text-[11px] font-semibold leading-tight text-slate-700 dark:text-slate-200">{k.label}</span>
           </button>
         ))}
       </div>

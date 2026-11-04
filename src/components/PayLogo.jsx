@@ -16,10 +16,5 @@ export default function PayLogo({ method, className }) {
         <img src={`${B}mastercard.svg`} alt="Mastercard" className="h-4 w-auto" />
       </span>
     );
-  return (
-    <span className={cx(box, 'relative bg-emerald-700 text-white')}>
-      <img src={`${import.meta.env.BASE_URL}photos/cedis.jpg`} alt="Cash" className="absolute inset-0 h-full w-full object-cover" />
-      <Banknote className="relative h-4 w-4 drop-shadow" />
-    </span>
-  );
+  return <span className={cx(box, 'bg-emerald-600 text-white')}><Banknote className="h-5 w-5" /></span>;
 }

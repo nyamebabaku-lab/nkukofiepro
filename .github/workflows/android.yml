@@ -1,0 +1,56 @@
+name: Build Android app
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+
+      - name: Restore signing key
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $RUNNER_TEMP/upload.p12
+
+      - name: Build signed APK and Play Store bundle
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/upload.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease bundleRelease
+          cp app/build/outputs/apk/release/app-release.apk ../PoultryPro.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../PoultryPro.aab
+
+      - name: Publish release (download link always points to the newest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="android-v1.0.${{ github.run_number }}"
+          gh release create "$TAG" PoultryPro.apk PoultryPro.aab \
+            --title "PoultryPro Android 1.0.${{ github.run_number }}" \
+            --notes "Install PoultryPro.apk on Android (allow 'Install unknown apps' when asked). PoultryPro.aab is for the Google Play Store." \
+            --latest

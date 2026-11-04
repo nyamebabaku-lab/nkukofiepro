@@ -11,8 +11,10 @@ import '@fontsource/fraunces/700.css';
 import './index.css';
 import App from './App';
 import { startOfflineServices } from './data/offline';
+import { isNative, startNative } from './data/native';
 
-startOfflineServices();
+if (!isNative()) startOfflineServices();
+startNative();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

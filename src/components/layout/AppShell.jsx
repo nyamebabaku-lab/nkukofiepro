@@ -5,6 +5,7 @@ import { useDB, useSession } from '../../data/store';
 import { useCurrentUser, useMyFarms, useFarmScope, notificationsFor } from '../../data/selectors';
 import { navFor, navItem, MOBILE_TABS, ROLES } from '../../lib/nav';
 import { useOnline, useInstall, isIOS } from '../../data/offline';
+import { isNative, APK_URL } from '../../data/native';
 import { Avatar, Badge, Modal, cx, toast } from '../ui';
 import QuickLog, { useQuickLog } from '../QuickLog';
 import Logo from './Logo';
@@ -145,7 +146,7 @@ function InstallBanner() {
     }
   });
   const [iosHelp, setIosHelp] = useState(false);
-  if (installed || hide || (!prompt && !isIOS())) return null;
+  if (isNative() || installed || hide || (!prompt && !isIOS())) return null;
   const dismiss = () => {
     setHide(true);
     try {
@@ -158,7 +159,7 @@ function InstallBanner() {
     <>
       <div className="no-print mb-5 flex items-center gap-3 rounded-2xl bg-brand-800 p-3 pl-4 text-white shadow-lift">
         <Download className="h-5 w-5 shrink-0 text-gold-400" />
-        <p className="min-w-0 flex-1 text-sm"><b>Install PoultryPro</b> on this phone or computer — opens like an app, works offline.</p>
+        <p className="min-w-0 flex-1 text-sm"><b>Install PoultryPro</b> on this phone or computer — opens like an app, works offline. <a href={APK_URL} className="font-semibold text-gold-300 underline">Android APK</a></p>
         <button type="button" className="rounded-xl bg-gold-500 px-3 py-1.5 text-xs font-bold text-brand-950" onClick={async () => (prompt ? (prompt.prompt(), await prompt.userChoice, useInstall.setState({ prompt: null })) : setIosHelp(true))}>
           Install
         </button>
