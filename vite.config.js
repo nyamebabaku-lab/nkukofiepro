@@ -38,8 +38,9 @@ export default defineConfig({
         // Every page is cached on first visit so the app opens with no internet.
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],
         // The main app's folder also holds the admin and demo apps; never cache or answer for them.
-        globIgnores: APP === 'main' ? ['admin/**', 'demo/**'] : [],
-        navigateFallbackDenylist: APP === 'main' ? [/\/admin\//, /\/demo\//] : [],
+        // Never cache or answer for the other apps or the /get download pages.
+        globIgnores: APP === 'main' ? ['admin/**', 'demo/**', 'get/**', 'get-admin/**'] : ['get/**', 'get-admin/**'],
+        navigateFallbackDenylist: APP === 'main' ? [/\/admin\//, /\/demo\//, /\/get(-admin)?\//] : [/\/get(-admin)?\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',

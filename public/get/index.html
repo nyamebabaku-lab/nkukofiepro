@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1f3d2b">
+<title>Get PoultryPro</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#1f3d2b;color:#f6f1e7;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center;padding:24px;box-sizing:border-box}
+  .c{max-width:380px} h1{font-family:Georgia,serif;font-size:30px;margin:16px 0 8px} p{opacity:.8;line-height:1.5}
+  a{display:block;margin:12px 0;padding:15px 18px;border-radius:14px;font-weight:700;text-decoration:none}
+  .p{background:#d9a441;color:#0e1c14} .s{background:rgba(255,255,255,.1);color:#f6f1e7;border:1px solid rgba(255,255,255,.2)}
+  img{width:72px;height:72px;border-radius:18px}
+</style>
+</head>
+<body>
+<div class="c">
+  <img src="../icon-192.png" alt="">
+  <h1>PoultryPro</h1>
+  <p>For customers, farm workers and managers.</p>
+  <a class="p" id="apk" href="https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download/PoultryPro.apk">Download for Android</a>
+  <a class="s" href="../">Open on iPhone or computer</a>
+  <p style="font-size:13px">On iPhone, open it in Safari and tap Share → Add to Home Screen.</p>
+</div>
+<script>
+  // Android phones go straight to the APK download; everything else opens the web app.
+  var ua = navigator.userAgent || '';
+  if (/android/i.test(ua)) location.replace('https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download/PoultryPro.apk');
+  else if (/iphone|ipad|ipod/i.test(ua)) location.replace('../');
+</script>
+</body>
+</html>
