@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Egg, Bird, HeartCrack, Wheat, Wallet, TrendingUp, HandCoins, Percent, Plus, Store, AlertTriangle, AlertOctagon, Info, ChevronRight, CalendarClock, Clock, CheckCircle2, Circle, Sun, Moon, Sunrise } from 'lucide-react';
 import { useDB } from '../../data/store';
+import { LIVE } from '../../config';
 import { useCurrentUser, useFarmScope, useInScope, useMyFarms } from '../../data/selectors';
 import { Card, CardHeader, StatCard, Badge, Button, Progress, Input, Segmented, toast, cx } from '../../components/ui';
 import { TrendChart, Bars } from '../../components/charts';
@@ -190,7 +191,7 @@ function MyDay({ user }) {
             <Button onClick={doClock} disabled={code.length !== 6}>{att ? 'Clock out' : 'Clock in'}</Button>
           </div>
         )}
-        <p className="mt-2 text-[11px] text-slate-400">The code is shown on the farm notice board (demo: Dodowa {db.farms[0].clockCode}).</p>
+        <p className="mt-2 text-[11px] text-slate-400">The code is shown on the farm notice board{LIVE ? '' : ` (demo: Dodowa ${db.farms[0]?.clockCode})`}.</p>
       </Card>
       <Card>
         <CardHeader title="My tasks today" subtitle={`${done} of ${tasks.length} done`} icon={CheckCircle2} />
