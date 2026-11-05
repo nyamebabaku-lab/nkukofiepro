@@ -6,3 +6,5 @@ build/
 # Private SMS keys
 supabase/functions/.env
 supabase/.temp/
+*.swp
+*.swo

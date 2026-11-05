@@ -8,8 +8,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 REF=tzslrrptbmhdlhxbfujq
 
-set -a; source .env.local; source supabase/functions/.env; set +a
-[ -n "${SUPABASE_ACCESS_TOKEN:-}" ] || { echo "✗ Put your Supabase access token in .env.local"; exit 1; }
+set -a; [ -f .env.local ] && source .env.local; source supabase/functions/.env; set +a
+# No token in .env.local? Use the sign-in from "npx supabase login" on this computer.
+if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ] && [ -f "$HOME/.supabase/access-token" ]; then SUPABASE_ACCESS_TOKEN="$(cat "$HOME/.supabase/access-token")"; fi
+[ -n "${SUPABASE_ACCESS_TOKEN:-}" ] || { echo "✗ Sign in first with: npx supabase login   (or put a token in .env.local)"; exit 1; }
 [ -n "${MNOTIFY_API_KEY:-}" ] || { echo "✗ Put your mNotify API key in supabase/functions/.env"; exit 1; }
 [ -n "${MNOTIFY_SENDER_ID:-}" ] || { echo "✗ Put your mNotify sender ID in supabase/functions/.env"; exit 1; }
 export SUPABASE_ACCESS_TOKEN

@@ -38,6 +38,10 @@ Download: https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download
 
 Every push to `main` builds a signed APK (and a Play Store `.aab`) with Capacitor in GitHub Actions (`.github/workflows/android.yml`) and attaches it to a new GitHub release. The upload signing key is stored in the repository secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`); keep an offline backup of it, as Google Play updates need the same key. App icon and splash sources are in `assets/` and `public/hero/`.
 
+## SMS (mNotify)
+
+Real SMS go through the `send-sms` Supabase Edge Function, so the mNotify API key never ships in the apps. Put the key and the approved sender ID in `supabase/functions/.env` (git-ignored; see `.env.example`), sign in once with `npx supabase@2.54.11 login`, then run `npm run sms:setup` to store the secrets and deploy the function. Each farm business can send up to `MNOTIFY_DAILY_LIMIT` SMS a day; customers can only be texted on their own number. Sent messages are logged in `public.sms_log` (Platform → Data → SMS in PoultryPro Admin).
+
 ## Run it locally
 
 ```bash
