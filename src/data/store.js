@@ -62,8 +62,15 @@ export const useDB = create(
       /** In-app notification. Target with toRoles: ['owner','manager'], toUserId, or toCustomerId. */
       notify: (n) => set((s) => ({ notifications: [{ id: uid('ntf'), at: nowISO(), read: false, ...n }, ...s.notifications].slice(0, 300) })),
       markRead: (ids) => set((s) => ({ notifications: s.notifications.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)) })),
-      /** Simulated SMS (phase 2 sends these through an SMS gateway). */
-      sms: (to, text) => set((s) => ({ smsLog: [{ id: uid('sms'), at: nowISO(), to, text, status: 'sent' }, ...s.smsLog].slice(0, 300) })),
+      /** SMS: sent for real through mNotify in the live apps (src/lib/sms.js); simulated in the demo. */
+      sms: (to, text) => {
+        const id = uid('sms');
+        set((s) => ({ smsLog: [{ id, at: nowISO(), to, text, status: LIVE ? 'sending' : 'sent' }, ...s.smsLog].slice(0, 300) }));
+        if (LIVE && to)
+          import('../lib/sms')
+            .then((m) => m.sendSms(to, text))
+            .then((r) => set((s) => ({ smsLog: s.smsLog.map((m) => (m.id === id ? { ...m, status: r.ok ? 'sent' : 'failed', error: r.error || undefined } : m)) })));
+      },
 
       resetDemo: () => set({ ...(LIVE ? buildEmpty() : buildSeed()) }),
       importData: (data) => set({ ...(LIVE ? buildEmpty() : buildSeed()), ...data }),

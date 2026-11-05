@@ -1,6 +1,7 @@
 // Password screens: change password, forced change after a reset, and showing a temporary password.
 import { useState } from 'react';
-import { KeyRound, Copy, Share2, Loader2, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Copy, Share2, Loader2, Eye, EyeOff, MessageSquare } from 'lucide-react';
+import { sendSms } from '../../lib/sms';
 import { Button, Field, Input, Modal, toast } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
 import { changeMyPassword } from '../../lib/accounts';
@@ -87,6 +88,7 @@ export function TempPasswordModal({ result, onClose }) {
       <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">They sign in with <b>{result.phone}</b> and this password, then the app asks them to choose a new password. They have been signed out on all their devices.</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button size="sm" variant="secondary" icon={Copy} onClick={() => navigator.clipboard?.writeText(result.code).then(() => toast.success('Copied'))}>Copy</Button>
+        <Button size="sm" variant="secondary" icon={MessageSquare} onClick={async () => { const r = await sendSms(result.phone, text); return r.ok ? toast.success('SMS sent', result.phone) : toast.error('SMS not sent', r.error); }}>Send by SMS</Button>
         <a href={`https://wa.me/233${String(result.phone).replace(/^0/, '')}?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer"><Button size="sm" variant="secondary" icon={Share2}>Send on WhatsApp</Button></a>
       </div>
       <p className="mt-4 text-xs text-slate-400">This password is shown only now. If it is lost, reset the password again.</p>

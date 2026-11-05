@@ -5,6 +5,7 @@ import { useSession } from '../../data/store';
 import { PageHeader, Button, Card, CardHeader, Badge, Tabs, DataTable, Avatar, Select, StatCard, Modal, Field, Input, EmptyState, confirmDialog, toast } from '../../components/ui';
 import { listProfiles, setAccountStatus, setMemberRole, deleteAccount, regenerateFarmCode, watchAccounts, fetchProfile, resetPassword, STATUS, MEMBER_ROLES, roleLabel } from '../../lib/accounts';
 import { TempPasswordModal } from '../live/Passwords';
+import { sendSms } from '../../lib/sms';
 import { fmtDateTime } from '../../lib/format';
 
 /** Action buttons shared with the super admin's account list. */
@@ -36,7 +37,7 @@ export function AccountActions({ p, onDone, compact }) {
     <div className="flex flex-wrap justify-end gap-1.5">
       {p.status === 'pending' && (
         <>
-          <Button size={size} icon={UserCheck} onClick={() => run(() => setAccountStatus(p.user_id, 'active'), `${p.full_name} approved`)}>Approve</Button>
+          <Button size={size} icon={UserCheck} onClick={() => run(async () => { await setAccountStatus(p.user_id, 'active'); sendSms(p.phone, `PoultryPro: Hello ${p.full_name.split(' ')[0]}, your account has been approved. You can now sign in with your phone number and password.`); }, `${p.full_name} approved`)}>Approve</Button>
           <Button size={size} variant="soft-red" icon={UserX} onClick={() => ask('deactivated')}>Reject</Button>
         </>
       )}

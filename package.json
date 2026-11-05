@@ -12,7 +12,8 @@
     "dev:demo": "VITE_APP=demo vite",
     "build:main": "VITE_APP=main vite build",
     "build:admin": "VITE_APP=admin vite build",
-    "build:demo": "VITE_APP=demo vite build"
+    "build:demo": "VITE_APP=demo vite build",
+    "sms:setup": "bash scripts/setup-sms.sh"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",

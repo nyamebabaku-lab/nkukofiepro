@@ -1,16 +1,17 @@
 // Super admin: approve and manage farm businesses and every account; clear demo & test data.
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { KeyRound, Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
+import { MessageSquare, Loader2, KeyRound, Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
 import { useSession } from '../../data/store';
 import { Button, Card, CardHeader, Badge, Tabs, DataTable, Avatar, StatCard, Modal, Field, Input, EmptyState, Toaster, confirmDialog, toast, cx } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
 import { AccountActions } from '../admin/Accounts';
 import { listBusinesses, listProfiles, listAudit, setBusinessStatus, setBusinessTest, deleteBusiness, clearTestData, setPlatform, platformSettings, watchAccounts, enterApp, resetPassword, STATUS, roleLabel } from '../../lib/accounts';
 import { TempPasswordModal, ChangePasswordModal } from '../live/Passwords';
+import { sendSms, smsBalance, smsHistory } from '../../lib/sms';
 import { leave, useLive } from '../live/useLive';
 import { fmtDateTime } from '../../lib/format';
 
-function BusinessActions({ b, onDone, onOpen }) {
+function BusinessActions({ b, onDone, onOpen, ownerPhone }) {
   const run = async (fn, ok) => {
     try {
       await fn();
@@ -22,7 +23,7 @@ function BusinessActions({ b, onDone, onOpen }) {
   };
   return (
     <div className="flex flex-wrap justify-end gap-1.5">
-      {b.status === 'pending' && <Button size="sm" icon={CheckCircle2} onClick={() => run(() => setBusinessStatus(b.id, 'active'), `${b.name} approved`)}>Approve</Button>}
+      {b.status === 'pending' && <Button size="sm" icon={CheckCircle2} onClick={() => run(async () => { await setBusinessStatus(b.id, 'active'); if (ownerPhone) sendSms(ownerPhone, `PoultryPro: ${b.name} has been approved. Sign in to PoultryPro Admin to set up your farm and share your farm code ${b.farm_code} with your team and customers.`); }, `${b.name} approved`)}>Approve</Button>}
       {b.status === 'active' && <Button size="sm" variant="secondary" icon={Eye} onClick={() => onOpen(b)}>Open</Button>}
       {b.status === 'active' && <Button size="sm" variant="secondary" icon={PauseCircle} onClick={() => run(() => setBusinessStatus(b.id, 'suspended'), 'Business suspended')}>Suspend</Button>}
       {(b.status === 'suspended' || b.status === 'deactivated') && <Button size="sm" variant="secondary" icon={PlayCircle} onClick={() => run(() => setBusinessStatus(b.id, 'active'), 'Business activated')}>Activate</Button>}
@@ -59,6 +60,52 @@ function OwnerReset({ p, onDone }) {
       <Button size="sm" variant={p.reset_requested_at ? 'primary' : 'ghost'} icon={KeyRound} onClick={go}>Reset password</Button>
       <TempPasswordModal result={temp} onClose={() => setTemp(null)} />
     </div>
+  );
+}
+
+/** mNotify credit, a test message and the latest SMS sent on the platform. */
+function SmsCard() {
+  const [bal, setBal] = useState(null);
+  const [log, setLog] = useState([]);
+  const [to, setTo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(() => {
+    smsBalance().then(setBal).catch((e) => setBal({ ok: false, error: e.message }));
+    smsHistory().then(setLog).catch(() => {});
+  }, []);
+  useEffect(() => load(), [load]);
+  const test = async () => {
+    setBusy(true);
+    const r = await sendSms(to, 'PoultryPro: test message — SMS through mNotify is working.');
+    setBusy(false);
+    if (r.ok) toast.success('Test SMS sent', to);
+    else toast.error('SMS not sent', r.error);
+    load();
+  };
+  return (
+    <Card className="xl:col-span-2">
+      <CardHeader title="SMS (mNotify)" subtitle="Bookings, payments, pick-ups, approvals and password resets are texted automatically" icon={MessageSquare} />
+      <div className="grid gap-5 p-5 lg:grid-cols-[1fr_1.6fr]">
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-cream-100 p-4 dark:bg-white/5">
+            <p className="text-xs text-slate-500">mNotify credit</p>
+            {bal === null ? <Loader2 className="mt-2 h-5 w-5 animate-spin text-slate-400" /> : bal.ok ? <p className="text-2xl font-extrabold">{bal.balance ?? '—'} <span className="text-sm font-medium text-slate-500">SMS{bal.bonus ? ` + ${bal.bonus} bonus` : ''}</span></p> : <p className="mt-1 text-sm font-medium text-accent-600">{bal.error || bal.raw?.message || 'Not connected yet'}</p>}
+          </div>
+          <Field label="Send a test SMS to"><Input inputMode="tel" value={to} onChange={(e) => setTo(e.target.value)} placeholder="024 123 4567" /></Field>
+          <Button icon={busy ? Loader2 : MessageSquare} disabled={busy || to.replace(/\D/g, '').length < 9} onClick={test}>Send test SMS</Button>
+        </div>
+        <div className="max-h-80 overflow-y-auto rounded-2xl border border-cream-200 dark:border-white/10">
+          {!log.length && <p className="p-4 text-sm text-slate-500">No SMS sent yet.</p>}
+          {log.map((m) => (
+            <div key={m.id} className="flex gap-3 border-b border-cream-100 px-4 py-2.5 text-sm last:border-0 dark:border-white/5">
+              <span className="w-28 shrink-0 text-xs text-slate-400">{fmtDateTime(m.at)}</span>
+              <span className="min-w-0 flex-1"><b>{m.to_phone}</b> · <span className="text-slate-600 dark:text-slate-300">{m.message}</span>{m.error && <span className="block text-xs text-accent-600">{m.error}</span>}</span>
+              <Badge tone={m.status === 'sent' ? 'green' : 'red'}>{m.status}</Badge>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -116,6 +163,7 @@ function DataTab({ businesses, profiles, settings, reload }) {
           <p className="flex items-start gap-2 text-xs text-slate-500"><FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Mark or unmark single businesses as test on the Businesses tab.</p>
         </div>
       </Card>
+      <SmsCard />
       <Modal open={open} onClose={() => setOpen(false)} title="Clear all demo & test data?" size="sm" footer={<Button variant="danger" disabled={typed !== 'CLEAR'} onClick={clear}>Clear for good</Button>}>
         <p className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent-600" /> {testBiz.length} businesses and {testUsers.length} accounts, with all their records, will be deleted. This cannot be undone.</p>
         <Field label="Type CLEAR to confirm" className="mt-4"><Input value={typed} onChange={(e) => setTyped(e.target.value.toUpperCase())} /></Field>
@@ -204,7 +252,7 @@ export default function Platform() {
                         <p className="font-bold">{b.name} {b.is_test && <Badge tone="violet">Test</Badge>}</p>
                         <p className="text-xs text-slate-500">{b.location} · owner {owner?.full_name} ({owner?.phone}) · {fmtDateTime(b.created_at)}</p>
                       </div>
-                      <BusinessActions b={b} onDone={load} onOpen={open} />
+                      <BusinessActions b={b} onDone={load} onOpen={open} ownerPhone={data.profiles.find((p) => p.user_id === b.owner_id)?.phone} />
                     </div>
                   );
                 })}
@@ -243,7 +291,7 @@ export default function Platform() {
               { key: 'people', label: 'Accounts', sort: (b) => data.profiles.filter((p) => p.business_id === b.id).length, render: (b) => data.profiles.filter((p) => p.business_id === b.id).length, hideOnMobile: true },
               { key: 'status', label: 'Status', render: (b) => <Badge tone={STATUS[b.status].tone} dot>{b.status === 'pending' ? 'Waiting' : STATUS[b.status].label}</Badge> },
               { key: 'is_test', label: 'Test', render: (b) => <input type="checkbox" className="h-4 w-4 accent-brand-600" checked={b.is_test} onChange={async (e) => { try { await setBusinessTest(b.id, e.target.checked); load(); } catch (err) { toast.error(err.message); } }} aria-label="Test business" /> },
-              { key: 'x', label: '', nosort: true, render: (b) => <BusinessActions b={b} onDone={load} onOpen={open} /> },
+              { key: 'x', label: '', nosort: true, render: (b) => <BusinessActions b={b} onDone={load} onOpen={open} ownerPhone={data.profiles.find((p) => p.user_id === b.owner_id)?.phone} /> },
             ]}
           />
         )}
