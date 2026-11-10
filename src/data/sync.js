@@ -15,7 +15,7 @@ const STOCK_INPUTS = ['products', 'orders', 'eggLogs', 'productMoves', 'flocks',
 let ctx = null; // { bid, readOnly, role, channel, unsub, queue, timer, lastSync }
 let applying = false;
 
-const qKey = () => storeKey(`poultrypro-queue-${ctx?.bid}`);
+const qKey = () => storeKey(`nkukofie-queue-${ctx?.bid}`);
 const saveQueue = () => {
   try {
     localStorage.setItem(qKey(), JSON.stringify([...ctx.queue.values()]));
@@ -142,7 +142,7 @@ async function flush() {
         for (const q of batch) {
           const r = await send([q]);
           if (!r.error || isDenied(r.error)) ctx?.queue.delete(`${q.col}|${q.id}`);
-          if (r.error && isDenied(r.error)) emit('poultrypro-sync-denied', q.col);
+          if (r.error && isDenied(r.error)) emit('nkukofie-sync-denied', q.col);
         }
       } else break;
     }
@@ -154,7 +154,7 @@ async function flush() {
   } finally {
     flushing = false;
     if (ctx) saveQueue();
-    emit('poultrypro-sync', syncInfo());
+    emit('nkukofie-sync', syncInfo());
   }
 }
 

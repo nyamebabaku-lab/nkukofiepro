@@ -4,6 +4,7 @@ import { useDB, useSession } from '../data/store';
 import { today, nowISO, sum, round2, money } from './format';
 import { payout } from './payments';
 import { walletSummary } from './wallet';
+import { smsPrefix } from './brand';
 
 export const TASK_CATEGORIES = [
   { value: 'eggs', label: 'Egg collection' },
@@ -107,7 +108,7 @@ export async function payPayrun(draft, onProgress) {
   useDB.setState((s) => ({ advances: s.advances.map((a) => (paidIds.includes(a.userId) && !a.settled ? { ...a, settled: true, payrunId: pr.id } : a)) }));
   lines.filter((l) => l.status === 'paid').forEach((l) => {
     useDB.getState().notify({ toUserId: l.userId, title: 'Salary paid', text: `${money(l.net)} sent to your MoMo (${draft.month}).`, link: '/app' });
-    useDB.getState().sms(l.account, `PoultryPro: Your salary of ${money(l.net)} for ${draft.month} has been sent.`);
+    useDB.getState().sms(l.account, `${smsPrefix()}: Your salary of ${money(l.net)} for ${draft.month} has been sent.`);
   });
   useDB.getState().log('Payroll paid', `${draft.month} · ${money(paid)}`);
   return pr;

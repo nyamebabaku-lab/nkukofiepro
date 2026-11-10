@@ -13,6 +13,7 @@ import { LIVE } from '../../config';
 import { leave } from '../../modules/live/useLive';
 import { enterApp } from '../../lib/accounts';
 import { ChangePasswordModal } from '../../modules/live/Passwords';
+import { appName } from '../../lib/brand';
 
 function SidebarNav({ role, collapsed, onNavigate }) {
   return (
@@ -163,7 +164,7 @@ function InstallBanner() {
     <>
       <div className="no-print mb-5 flex items-center gap-3 rounded-2xl bg-brand-800 p-3 pl-4 text-white shadow-lift">
         <Download className="h-5 w-5 shrink-0 text-gold-400" />
-        <p className="min-w-0 flex-1 text-sm"><b>Install PoultryPro</b> on this phone or computer — opens like an app, works offline. <a href={APK_URL} className="font-semibold text-gold-300 underline">Android APK</a></p>
+        <p className="min-w-0 flex-1 text-sm"><b>Install {appName()}</b> on this phone or computer — opens like an app, works offline. <a href={APK_URL} className="font-semibold text-gold-300 underline">Android APK</a></p>
         <button type="button" className="rounded-xl bg-gold-500 px-3 py-1.5 text-xs font-bold text-brand-950" onClick={async () => (prompt ? (prompt.prompt(), await prompt.userChoice, useInstall.setState({ prompt: null })) : setIosHelp(true))}>
           Install
         </button>
@@ -222,13 +223,13 @@ export default function AppShell() {
     await enterApp(useSession.getState().profile, { viewBusinessId: null });
     navigate('/platform');
   };
-  const title = navFor(user.role).flatMap((g) => g.items).find((i) => (i.path === '/app' ? loc.pathname === '/app' : loc.pathname.startsWith(i.path)))?.label || 'PoultryPro';
+  const title = navFor(user.role).flatMap((g) => g.items).find((i) => (i.path === '/app' ? loc.pathname === '/app' : loc.pathname.startsWith(i.path)))?.label || appName();
 
   return (
     <div className="min-h-screen bg-cream-100 dark:bg-navy-950">
       <aside className={cx('no-print fixed inset-y-0 left-0 z-30 hidden flex-col bg-brand-900 transition-all dark:bg-navy-900 lg:flex', sidebarCollapsed ? 'w-20' : 'w-72')}>
         <Link to="/app" className={cx('flex h-20 items-center px-5', sidebarCollapsed && 'justify-center px-0')}>
-          <Logo compact={sidebarCollapsed} dark />
+          <Logo compact={sidebarCollapsed} dark farm />
         </Link>
         <FarmSwitcher collapsed={sidebarCollapsed} />
         <SidebarNav role={user.role} collapsed={sidebarCollapsed} />
@@ -242,7 +243,7 @@ export default function AppShell() {
           <div className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <aside className="relative flex h-full w-[86%] max-w-xs animate-slide-in flex-col bg-brand-900 dark:bg-navy-900">
             <div className="flex h-20 items-center justify-between px-5">
-              <Logo dark />
+              <Logo dark farm />
               <button type="button" onClick={() => setMobileOpen(false)} className="rounded-xl p-2 text-brand-100 hover:bg-white/10" aria-label="Close menu"><X className="h-5 w-5" /></button>
             </div>
             <FarmSwitcher onPick={() => setMobileOpen(false)} />

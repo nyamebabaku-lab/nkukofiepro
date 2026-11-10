@@ -2,13 +2,18 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// Three apps from one codebase (VITE_APP): main → dist/, admin → dist/admin/, demo → dist/demo/.
+// Four builds from one codebase (VITE_APP): main → dist/ (customers), farm → dist/farm/,
+// admin → dist/admin/ (super admin), demo → dist/demo/.
 const APP = process.env.VITE_APP || 'demo';
+const NAME = 'Nkukɔ Fie Pro';
 const META = {
-  main: { name: 'PoultryPro', short: 'PoultryPro', desc: 'Order from your farm, or record your daily farm work', out: 'dist' },
-  admin: { name: 'PoultryPro Admin', short: 'PP Admin', desc: 'Run your farm business and approve your team', out: 'dist/admin' },
-  demo: { name: 'PoultryPro — Demo', short: 'PP Demo', desc: 'Try PoultryPro with a demo farm', out: 'dist/demo' },
+  main: { name: NAME, short: 'Nkukɔ Fie', desc: 'Order fresh eggs, birds and chicks from your farm and pay with MoMo', out: 'dist' },
+  farm: { name: `${NAME} Farm`, short: 'NF Farm', desc: 'Run your poultry farm: flocks, eggs, feed, staff, sales and payments', out: 'dist/farm' },
+  admin: { name: `${NAME} Admin`, short: 'NF Admin', desc: 'Platform administration', out: 'dist/admin' },
+  demo: { name: `${NAME} — Demo`, short: 'NF Demo', desc: 'Try Nkukɔ Fie Pro with a sample farm', out: 'dist/demo' },
 }[APP];
+// Paths of the other apps that live inside the main app's folder.
+const OTHERS = ['admin', 'farm', 'demo', 'get', 'get-farm', 'get-admin'];
 
 export default defineConfig({
   base: './',
@@ -19,7 +24,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        id: `poultrypro-${APP}`,
+        id: `nkukofie-${APP}`,
         name: META.name,
         short_name: META.short,
         description: META.desc,
@@ -39,8 +44,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2}'],
         // The main app's folder also holds the admin and demo apps; never cache or answer for them.
         // Never cache or answer for the other apps or the /get download pages.
-        globIgnores: APP === 'main' ? ['admin/**', 'demo/**', 'get/**', 'get-admin/**'] : ['get/**', 'get-admin/**'],
-        navigateFallbackDenylist: APP === 'main' ? [/\/admin\//, /\/demo\//, /\/get(-admin)?\//] : [/\/get(-admin)?\//],
+        globIgnores: APP === 'main' ? OTHERS.map((d) => `${d}/**`) : ['get/**', 'get-farm/**', 'get-admin/**'],
+        navigateFallbackDenylist: APP === 'main' ? OTHERS.map((d) => new RegExp(`/${d}/`)) : [/\/get(-farm|-admin)?\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',

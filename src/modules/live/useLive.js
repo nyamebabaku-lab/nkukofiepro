@@ -4,8 +4,9 @@ import { MODE } from '../../config';
 import { supabase, supabaseReady } from '../../data/supabase';
 import { useSession } from '../../data/store';
 import { fetchProfile, enterApp, signOut } from '../../lib/accounts';
+import { setFarmBrand, setPlatformBrand } from '../../lib/brand';
 
-export const APP_ROLES = MODE === 'admin' ? ['owner', 'super_admin'] : ['customer', 'worker', 'manager'];
+export const APP_ROLES = { admin: ['super_admin'], farm: ['owner', 'manager', 'worker'], main: ['customer'] }[MODE] || [];
 
 export const useLive = create(() => ({ phase: 'boot', profile: null, notice: null }));
 const set = (p) => useLive.setState(p);
@@ -27,6 +28,7 @@ export async function decide(profile) {
     return set({ phase: 'out', profile: null, notice: 'Your sign-up was not finished. Please create your account again.' });
   }
   set({ profile });
+  setFarmBrand(profile.business?.name, profile.business?.logo);
   watchMe(profile);
   if (!APP_ROLES.includes(profile.role)) return set({ phase: 'wrongApp' });
   if (profile.role !== 'super_admin' && profile.business?.status !== 'active') return set({ phase: profile.business?.status === 'pending' ? 'pending' : 'businessBlocked' });
@@ -54,8 +56,19 @@ export async function refresh() {
   }
 }
 
+/** Platform name + logo (anyone may read them; cached for offline starts). */
+export async function loadPlatformBrand() {
+  try {
+    const { data } = await supabase.from('platform_settings').select('app_name, app_logo').eq('id', 1).maybeSingle();
+    if (data) setPlatformBrand({ name: data.app_name, logo: data.app_logo });
+  } catch {
+    /* offline: keep the cached brand */
+  }
+}
+
 export async function boot() {
   if (!supabaseReady) return set({ phase: 'unconfigured' });
+  loadPlatformBrand();
   await refresh();
   supabase.auth.onAuthStateChange((event) => {
     if (event === 'SIGNED_OUT') set({ phase: 'out', profile: null });

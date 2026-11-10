@@ -6,6 +6,7 @@ import { TrendChart } from '../../components/charts';
 import { walletSummary, withdraw, bankCash, destinationLabel } from '../../lib/wallet';
 import { payout, methodLabel, BANKS } from '../../lib/payments';
 import { money, moneyShort, fmtDateTime, lastDays, round2 } from '../../lib/format';
+import { appName } from '../../lib/brand';
 
 const TYPE = { payment: ['Customer payment', 'green'], refund: ['Refund', 'red'], 'cash-deposit': ['Cash banked', 'sky'], withdrawal: ['Withdrawal', 'gold'], payroll: ['Salaries', 'violet'], expense: ['Expense', 'slate'] };
 
@@ -106,7 +107,7 @@ export default function Wallet() {
         <div className="grain hero-glow relative overflow-hidden rounded-3xl bg-brand-800 p-6 text-white shadow-lift">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-gold-300"><WalletIcon className="h-4 w-4" /> Available balance</p>
           <p className="mt-3 font-display text-5xl font-semibold tracking-tight">{money(w.balance)}</p>
-          <p className="mt-1 text-sm text-brand-100/80">{db.settings.businessName} · PoultryPro wallet</p>
+          <p className="mt-1 text-sm text-brand-100/80">{db.settings.businessName} · {appName()} wallet</p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Button className="bg-gold-500 text-brand-950 hover:bg-gold-400" icon={ArrowUpRight} onClick={() => setWd(true)}>Withdraw</Button>
             <Button variant="secondary" className="bg-white/10 text-white ring-white/20 hover:bg-white/20" icon={Banknote} onClick={() => setBank(true)}>Bank cash ({moneyShort(w.cashOnHand)})</Button>

@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { Lock } from 'lucide-react';
 import Logo from '../../components/layout/Logo';
 import { DB_KEY } from '../../data/store';
+import { appName } from '../../lib/brand';
 
-const KEY = 'poultrypro-demo-enabled';
+const KEY = 'nkukofie-demo-enabled';
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -19,8 +20,8 @@ const lastKnown = () => {
 
 function wipeDemo() {
   try {
-    [DB_KEY, 'poultrypro-session', 'poultrypro-cart'].forEach((k) => localStorage.removeItem(k));
-    indexedDB.deleteDatabase('poultrypro-photos');
+    [DB_KEY, 'nkukofie-session', 'nkukofie-cart'].forEach((k) => localStorage.removeItem(k));
+    indexedDB.deleteDatabase('nkukofie-photos');
   } catch {
     /* ignore */
   }
@@ -52,7 +53,7 @@ export default function DemoGate({ children }) {
         <Logo className="mb-8 justify-center" />
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-cream-200 text-brand-800 dark:bg-white/10 dark:text-white"><Lock className="h-8 w-8" /></div>
         <h1 className="font-display text-2xl font-semibold text-brand-900 dark:text-white">The demo is closed</h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">The PoultryPro demo is not available right now. Farms using PoultryPro sign in with the PoultryPro or PoultryPro Admin app.</p>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">The {appName()} demo is not available right now. Farms sign in with the {appName()} Farm app; customers use {appName()}.</p>
       </div>
     </div>
   );

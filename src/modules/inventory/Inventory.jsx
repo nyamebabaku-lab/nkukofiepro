@@ -6,6 +6,7 @@ import { PageHeader, Button, Tabs, DataTable, Badge, FormModal, StatCard, Segmen
 import { ITEM_CATEGORIES, itemBalance, itemUsage, lowStock } from '../../lib/stock';
 import { addExpense } from '../../lib/wallet';
 import { money, num, fmtDate, today, dayKey, sum } from '../../lib/format';
+import { appName } from '../../lib/brand';
 
 export default function Inventory() {
   const db = useDB();
@@ -91,7 +92,7 @@ export default function Inventory() {
       { name: 'qty', label: 'Quantity (in item units, e.g. kg)', type: 'number', required: true },
       { name: 'totalCost', label: 'Total cost (GH₵)', type: 'number', step: '0.01', hint: 'Leave blank to use the last unit price' },
       { name: 'supplierId', label: 'Supplier', type: 'select', options: db.suppliers.map((s) => ({ value: s.id, label: s.name })) },
-      { name: 'paidFrom', label: 'Paid from', type: 'select', options: [{ value: 'bank', label: 'Bank / other' }, { value: 'wallet', label: 'PoultryPro wallet' }, { value: 'cash', label: 'Cash on hand' }], hidden: () => user.role !== 'owner' },
+      { name: 'paidFrom', label: 'Paid from', type: 'select', options: [{ value: 'bank', label: 'Bank / other' }, { value: 'wallet', label: `${appName()} wallet` }, { value: 'cash', label: 'Cash on hand' }], hidden: () => user.role !== 'owner' },
       { name: 'ref', label: 'Invoice / delivery note no.' },
     ], initial: { farmId: defaultFarm, date: today(), paidFrom: 'bank' } },
     use: { title: 'Use or adjust stock', fields: [

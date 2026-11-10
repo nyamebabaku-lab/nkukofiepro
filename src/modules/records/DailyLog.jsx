@@ -19,7 +19,7 @@ export default function DailyLog() {
   const setTab = (t) => setParams({ tab: t });
   const flocks = activeFlocks(db).filter((f) => inScope(f.farmId));
   const code = (id) => db.flocks.find((f) => f.id === id)?.code || '—';
-  const person = (id) => db.users.find((u) => u.id === id)?.name.split(' ')[0] || id || '—';
+  const person = (id) => db.users.find((u) => u.id === id)?.name?.split(' ')[0] || id || '—';
   const t = today();
 
   const checklist = useMemo(

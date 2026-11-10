@@ -25,7 +25,7 @@ export default function Pickups() {
       <div className="flex flex-col gap-3 rounded-2xl border border-cream-200 p-3 sm:flex-row sm:items-center dark:border-white/10">
         <Link to={`/app/orders/${o.id}`} className="min-w-0 flex-1">
           <p className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">{o.customerName} <span className="text-xs font-medium text-slate-400">{o.ref}</span></p>
-          <p className="truncate text-xs text-slate-500">{o.lines.map((l) => `${num(l.qty)} × ${l.name.split(' —')[0]}`).join(', ')}</p>
+          <p className="truncate text-xs text-slate-500">{o.lines.map((l) => `${num(l.qty)} × ${String(l.name || 'Item').split(' —')[0]}`).join(', ')}</p>
           <p className="mt-1 flex items-center gap-2 text-xs text-slate-500"><span>{db.farms.find((f) => f.id === o.farmId)?.short}</span>{o.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{o.phone}</span>}</p>
         </Link>
         <div className="flex items-center gap-2 sm:flex-col sm:items-end">

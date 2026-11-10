@@ -1,5 +1,6 @@
 // Android app (Capacitor) glue: hardware back button, status bar colour, splash timing.
 import { Capacitor } from '@capacitor/core';
+import { RELEASES } from '../config';
 
 export const isNative = () => Capacitor.isNativePlatform();
 
@@ -17,6 +18,7 @@ export async function startNative() {
   setTimeout(() => SplashScreen.hide().catch(() => {}), 600);
 }
 
-/** Latest signed Android build (attached to each GitHub release by .github/workflows/android.yml). */
-export const APK_URL = 'https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download/PoultryPro.apk';
-export const ADMIN_APK_URL = 'https://github.com/nyamebabaku-lab/poultrypro/releases/latest/download/PoultryPro-Admin.apk';
+/** Latest signed Android builds (attached to each GitHub release by .github/workflows/android.yml). */
+export const APK_URL = `${RELEASES}NkukoFiePro.apk`;
+export const FARM_APK_URL = `${RELEASES}NkukoFiePro-Farm.apk`;
+export const ADMIN_APK_URL = `${RELEASES}NkukoFiePro-Admin.apk`;

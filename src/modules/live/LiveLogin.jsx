@@ -1,5 +1,5 @@
-// Live sign-in / create-account screens. PoultryPro: customers, workers and managers join with a farm code.
-// PoultryPro Admin: owners register a farm business; the very first visit sets up the super admin.
+// Live sign-in / create-account screens. Customer app: customers join with a farm code.
+// Farm app: workers and managers join with a farm code, owners register a business. Admin app: super admin only.
 import { useEffect, useState } from 'react';
 import { ArrowRight, Eye, EyeOff, CheckCircle2, ShieldCheck, Building2, UserPlus, LogIn, Loader2, KeyRound } from 'lucide-react';
 import { Button, Field, Input, Segmented, toast, cx } from '../../components/ui';
@@ -7,9 +7,11 @@ import Logo from '../../components/layout/Logo';
 import HeroPhoto from '../../components/HeroPhoto';
 import { signIn, signUpMember, registerBusiness, businessByCode, superAdminExists, claimSuperAdmin, requestReset, MEMBER_ROLES } from '../../lib/accounts';
 import { decide, useLive } from './useLive';
+import { useBrand } from '../../lib/brand';
 
-// Compared directly so each build drops the other app's forms entirely.
+// Compared directly so each build drops the other apps' forms entirely.
 const ADMIN = import.meta.env.VITE_APP === 'admin';
+const FARM = import.meta.env.VITE_APP === 'farm';
 
 function Password({ value, onChange, placeholder = 'At least 6 characters', auto = 'current-password' }) {
   const [show, setShow] = useState(false);
@@ -41,13 +43,13 @@ function ForgotForm({ phone, onBack }) {
       <div className="space-y-4 text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15"><CheckCircle2 className="h-8 w-8" /></div>
         <p className="font-semibold text-slate-900 dark:text-white">Request sent</p>
-        <p className="text-sm text-slate-600 dark:text-slate-300">If {v} has an account, {ADMIN ? 'the PoultryPro platform admin' : 'your farm owner'} can now see your request. They will give you a <b>temporary password</b> — sign in with it and the app will ask you to choose a new one.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300">If {v} has an account, {ADMIN ? 'the platform team' : FARM ? 'your farm owner (or the platform team, for owners)' : 'your farm owner'} can now see your request. They will give you a <b>temporary password</b> — sign in with it and the app will ask you to choose a new one.</p>
         <Button variant="secondary" className="w-full" onClick={onBack}>Back to sign in</Button>
       </div>
     );
   return (
     <form onSubmit={submit} className="space-y-4">
-      <p className="text-sm text-slate-600 dark:text-slate-300">Enter the phone number you sign in with. {ADMIN ? 'The PoultryPro platform admin' : 'Your farm owner'} will be asked to reset your password.</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Enter the phone number you sign in with. {ADMIN ? 'The platform team' : 'Your farm owner'} will be asked to reset your password.</p>
       <Field label="Phone number"><Input inputMode="tel" autoComplete="username" value={v} onChange={(e) => setV(e.target.value)} placeholder="024 123 4567" /></Field>
       <Button type="submit" size="lg" className="w-full" icon={busy ? Loader2 : KeyRound} disabled={busy}>Ask for a password reset</Button>
       <button type="button" onClick={onBack} className="w-full text-center text-sm text-slate-500 hover:underline">Back to sign in</button>
@@ -81,7 +83,9 @@ function SignInForm() {
 }
 
 function JoinForm() {
-  const [v, setV] = useState({ fullName: '', phone: '', password: '', code: '', role: 'customer' });
+  // Customer app: customers only. Farm app: workers and managers (owners register a business instead).
+  const roles = FARM ? MEMBER_ROLES.filter((r) => r.value !== 'customer') : MEMBER_ROLES.filter((r) => r.value === 'customer');
+  const [v, setV] = useState({ fullName: '', phone: '', password: '', code: '', role: roles[0].value });
   const [farm, setFarm] = useState(null);
   const [busy, setBusy] = useState(false);
   const set = (k, x) => setV((s) => ({ ...s, [k]: x }));
@@ -109,10 +113,12 @@ function JoinForm() {
       </Field>
       {farm && <p className="-mt-2 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" /> {farm.name}{farm.location ? ` · ${farm.location}` : ''}</p>}
       {farm === false && <p className="-mt-2 text-sm font-medium text-accent-600">No active farm has that code.</p>}
-      <div>
-        <span className="label">I am a</span>
-        <Segmented className="w-full [&>button]:flex-1" options={MEMBER_ROLES} value={v.role} onChange={(r) => set('role', r)} />
-      </div>
+      {roles.length > 1 && (
+        <div>
+          <span className="label">I am a</span>
+          <Segmented className="w-full [&>button]:flex-1" options={roles} value={v.role} onChange={(r) => set('role', r)} />
+        </div>
+      )}
       <Field label="Full name"><Input value={v.fullName} onChange={(e) => set('fullName', e.target.value)} autoComplete="name" /></Field>
       <Field label="Phone number" hint="You'll sign in with this number"><Input inputMode="tel" autoComplete="tel" value={v.phone} onChange={(e) => set('phone', e.target.value)} placeholder="024 123 4567" /></Field>
       <Field label="Create a password"><Password value={v.password} onChange={(p) => set('password', p)} auto="new-password" /></Field>
@@ -147,7 +153,7 @@ function BusinessForm() {
         <Field label="Create a password"><Password value={v.password} onChange={(p) => set('password', p)} auto="new-password" /></Field>
       </div>
       <Button type="submit" size="lg" className="w-full" icon={busy ? Loader2 : Building2} disabled={busy}>{busy ? 'Registering…' : 'Register farm business'}</Button>
-      <p className="text-center text-xs text-slate-500">The PoultryPro platform admin checks and approves new farm businesses.</p>
+      <p className="text-center text-xs text-slate-500">The platform team checks and approves new farm businesses.</p>
     </form>
   );
 }
@@ -180,15 +186,26 @@ function SuperAdminSetup() {
   );
 }
 
+const COPY = {
+  admin: { pill: 'Platform administration', h: <>Run the platform, <span className="text-gold-400">approve every farm.</span></>, p: 'Approve farm businesses, manage every account and keep the platform tidy.' },
+  farm: { pill: 'For farm owners, managers & workers', h: <>Run your farm, <span className="text-gold-400">together with your team.</span></>, p: 'Flocks, eggs, feed, staff, sales and payments — owners approve who can join.' },
+  main: { pill: 'For customers', h: <>Fresh from the farm, <span className="text-gold-400">booked in a minute.</span></>, p: 'Order eggs, birds, meat and chicks, choose your pick-up day and pay with MoMo or card.' },
+}[ADMIN ? 'admin' : FARM ? 'farm' : 'main'];
+
 export default function LiveLogin() {
-  const admin = ADMIN;
+  const name = useBrand((s) => s.name);
   const notice = useLive((s) => s.notice);
   const [tab, setTab] = useState('in');
   const [needsSuper, setNeedsSuper] = useState(false);
   useEffect(() => {
-    if (admin) superAdminExists().then((x) => setNeedsSuper(!x)).catch(() => {});
-  }, [admin]);
-  const title = needsSuper ? 'Set up PoultryPro' : tab === 'in' ? 'Sign in' : admin ? 'Register your farm business' : 'Create your account';
+    if (ADMIN) superAdminExists().then((x) => setNeedsSuper(!x)).catch(() => {});
+  }, []);
+  const tabs = FARM
+    ? [{ value: 'in', label: 'Sign in' }, { value: 'join', label: 'Join a farm' }, { value: 'biz', label: 'Register farm' }]
+    : ADMIN
+      ? []
+      : [{ value: 'in', label: 'Sign in' }, { value: 'join', label: 'Create account' }];
+  const title = ADMIN && needsSuper ? `Set up ${name}` : tab === 'in' ? 'Sign in' : tab === 'biz' ? 'Register your farm business' : FARM ? 'Join your farm' : 'Create your account';
 
   return (
     <div className="grid min-h-screen bg-cream-100 dark:bg-navy-950 lg:grid-cols-[1.05fr_1fr]">
@@ -196,23 +213,23 @@ export default function LiveLogin() {
         <HeroPhoto focus="60% 30%" fade="up" />
         <div className="relative"><Logo dark /></div>
         <div className="relative mt-auto max-w-lg">
-          <p className="mb-4 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-gold-300 ring-1 ring-white/10">{admin ? 'For farm owners & platform admins' : 'For customers, farm workers & managers'}</p>
-          <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight">{admin ? <>Run your farm business, <span className="text-gold-400">approve your team.</span></> : <>Your farm, <span className="text-gold-400">in your pocket.</span></>}</h1>
-          <p className="mt-5 text-lg text-brand-100/80">{admin ? 'Flocks, eggs, feed, staff, sales and payments — and full control over who can use your farm app.' : 'Order fresh eggs and birds, or record your daily farm work — all with one account.'}</p>
+          <p className="mb-4 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-gold-300 ring-1 ring-white/10">{COPY.pill}</p>
+          <h1 className="font-display text-5xl font-semibold leading-[1.05] tracking-tight">{COPY.h}</h1>
+          <p className="mt-5 text-lg text-brand-100/80">{COPY.p}</p>
         </div>
       </div>
       <div className="flex flex-col justify-center px-5 py-10 sm:px-12">
         <div className="mx-auto w-full max-w-md">
           <div className="mb-8 lg:hidden"><Logo /></div>
-          {admin && <p className="mb-2 inline-flex rounded-full bg-brand-700 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white">Admin</p>}
+          {(ADMIN || FARM) && <p className="mb-2 inline-flex rounded-full bg-brand-700 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white">{ADMIN ? 'Admin' : 'Farm'}</p>}
           <h2 className="font-display text-3xl font-semibold tracking-tight text-brand-900 dark:text-white">{title}</h2>
           {notice && <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">{notice}</p>}
           {ADMIN && needsSuper ? (
             <div className="mt-6"><SuperAdminSetup /></div>
           ) : (
             <>
-              <Segmented className="mt-6 w-full [&>button]:flex-1" options={[{ value: 'in', label: 'Sign in' }, { value: 'up', label: admin ? 'Register business' : 'Create account' }]} value={tab} onChange={setTab} />
-              <div className={cx('mt-6')}>{tab === 'in' ? <SignInForm /> : ADMIN ? <BusinessForm /> : <JoinForm />}</div>
+              {tabs.length > 0 && <Segmented className="mt-6 w-full [&>button]:flex-1" options={tabs} value={tab} onChange={setTab} />}
+              <div className={cx('mt-6')}>{tab === 'in' ? <SignInForm /> : tab === 'biz' ? <BusinessForm /> : <JoinForm />}</div>
             </>
           )}
         </div>

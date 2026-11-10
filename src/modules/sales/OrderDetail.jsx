@@ -9,6 +9,7 @@ import Logo from '../../components/layout/Logo';
 import { ORDER_STATUS, PAY_STATE, orderMoney, setOrderStatus, recordPayment, withdrawalWarning, pickupCheck } from '../../lib/orders';
 import { methodLabel } from '../../lib/payments';
 import { money, fmtDate, fmtDateTime, num } from '../../lib/format';
+import { appName, smsPrefix } from '../../lib/brand';
 
 /** Printable receipt / invoice body. */
 export function Receipt({ o, db }) {
@@ -19,7 +20,7 @@ export function Receipt({ o, db }) {
     <div className="text-sm">
       <div className="flex items-start justify-between gap-4 border-b border-cream-200 pb-4 dark:border-white/10">
         <div>
-          <Logo />
+          <Logo farm />
           <p className="mt-2 text-xs text-slate-500">{db.settings.businessName} · {farm?.name}<br />{farm?.location} · {farm?.phone}</p>
         </div>
         <div className="text-right">
@@ -79,7 +80,7 @@ export default function OrderDetail() {
     return null;
   };
   const share = () => {
-    const text = `Hello ${o.customerName}, your PoultryPro order ${o.ref} (${money(o.total)}) is ${ORDER_STATUS[o.status].label.toLowerCase()} at ${farm?.name}. ${m.balance > 0 ? `Balance: ${money(m.balance)}. ` : ''}Pick-up: ${fmtDate(o.pickupDate)}.`;
+    const text = `Hello ${o.customerName}, your ${appName()} order ${o.ref} (${money(o.total)}) is ${ORDER_STATUS[o.status].label.toLowerCase()} at ${farm?.name}. ${m.balance > 0 ? `Balance: ${money(m.balance)}. ` : ''}Pick-up: ${fmtDate(o.pickupDate)}.`;
     window.open(`https://wa.me/233${o.phone.replace(/^0/, '').replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   };
 
@@ -160,7 +161,7 @@ export default function OrderDetail() {
       <Modal open={receipt} onClose={() => setReceipt(false)} title={m.state === 'paid' ? 'Receipt' : 'Invoice'} size="lg" footer={<Button icon={Printer} onClick={() => printElement('print-area', o.ref)}>Print / save PDF</Button>}>
         <div id="print-area"><Receipt o={o} db={db} /></div>
       </Modal>
-      <Modal open={!!moving} onClose={() => setMoving(null)} title="Change pick-up date" size="sm" footer={<Button onClick={() => { const c = pickupCheck(db, o.farmId, moving); if (!c.ok) return toast.error(c.reason); db.update('orders', o.id, { pickupDate: moving }); db.sms(o.phone, `PoultryPro: Pick-up for ${o.ref} moved to ${fmtDate(moving)}.`); toast.success('Pick-up date changed', 'Customer notified by SMS'); setMoving(null); return null; }}>Save</Button>}>
+      <Modal open={!!moving} onClose={() => setMoving(null)} title="Change pick-up date" size="sm" footer={<Button onClick={() => { const c = pickupCheck(db, o.farmId, moving); if (!c.ok) return toast.error(c.reason); db.update('orders', o.id, { pickupDate: moving }); db.sms(o.phone, `${smsPrefix()}: Pick-up for ${o.ref} moved to ${fmtDate(moving)}.`); toast.success('Pick-up date changed', 'Customer notified by SMS'); setMoving(null); return null; }}>Save</Button>}>
         <Field label="New date"><Input type="date" value={moving || ''} onChange={(e) => setMoving(e.target.value)} /></Field>
       </Modal>
       <Modal open={!!cancel} onClose={() => setCancel(null)} title="Cancel this order?" size="sm" footer={<Button variant="danger" onClick={() => { setOrderStatus(o.id, 'cancelled', { refund: cancel.refund === 'yes', refundMethod: pays.find((p) => p.amount > 0)?.method }); toast.success('Order cancelled', cancel.refund === 'yes' ? `${money(m.paid)} refunded` : m.paid > 0 ? 'Payment kept as customer credit' : undefined); setCancel(null); }}>Cancel order</Button>}>

@@ -1,4 +1,4 @@
--- PoultryPro platform: businesses, accounts with approval, and one generic records table
+-- Nkukɔ Fie Pro platform: businesses, accounts with approval, and one generic records table
 -- that holds every farm collection (farms, flocks, eggLogs, orders, …) per business.
 -- All access is enforced here with row-level security; the apps only show what this allows.
 

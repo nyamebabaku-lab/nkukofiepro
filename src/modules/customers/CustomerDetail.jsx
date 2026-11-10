@@ -75,7 +75,7 @@ export default function CustomerDetail() {
           search={false}
           columns={[
             { key: 'ref', label: 'Order', render: (o) => <div><p className="font-bold">{o.ref}</p><p className="text-xs text-slate-400">{fmtDate(o.createdAt)}</p></div> },
-            { key: 'items', label: 'Items', nosort: true, render: (o) => <p className="max-w-[220px] truncate text-xs">{o.lines.map((l) => `${l.qty} ${l.name.split(' —')[0]}`).join(', ')}</p>, hideOnMobile: true },
+            { key: 'items', label: 'Items', nosort: true, render: (o) => <p className="max-w-[220px] truncate text-xs">{o.lines.map((l) => `${l.qty} ${String(l.name || 'Item').split(' —')[0]}`).join(', ')}</p>, hideOnMobile: true },
             { key: 'total', label: 'Total', render: (o) => money(o.total) },
             { key: 'pay', label: 'Paid', render: (o) => { const m = orderMoney(db, o); return o.status === 'cancelled' ? '—' : <Badge tone={PAY_STATE[m.state].tone}>{m.balance > 0 ? `${money(m.balance)} due` : 'Paid'}</Badge>; } },
             { key: 'status', label: 'Status', render: (o) => <Badge tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Badge> },
@@ -122,7 +122,7 @@ export default function CustomerDetail() {
       />
       <Modal open={stmt} onClose={() => setStmt(false)} title="Customer statement" size="lg" footer={<Button icon={Printer} onClick={() => printElement('stmt', `Statement ${c.name}`)}>Print / save PDF</Button>}>
         <div id="stmt" className="text-sm">
-          <div className="flex items-start justify-between border-b border-cream-200 pb-4"><Logo /><div className="text-right"><p className="font-display text-xl font-semibold">Statement</p><p className="text-xs text-slate-500">{fmtDate(today())}</p></div></div>
+          <div className="flex items-start justify-between border-b border-cream-200 pb-4"><Logo farm /><div className="text-right"><p className="font-display text-xl font-semibold">Statement</p><p className="text-xs text-slate-500">{fmtDate(today())}</p></div></div>
           <p className="mt-4 font-semibold">{c.name}</p><p className="text-xs text-slate-500">{c.phone} · {c.location}</p>
           <table className="mt-4 w-full">
             <thead><tr className="border-y border-cream-200 text-left text-xs uppercase text-slate-400"><th className="py-2">Date</th><th className="py-2">Details</th><th className="py-2 text-right">Charge</th><th className="py-2 text-right">Paid</th><th className="py-2 text-right">Balance</th></tr></thead>

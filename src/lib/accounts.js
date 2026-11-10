@@ -126,6 +126,8 @@ export const deleteBusiness = async (id) => must(await supabase.rpc('delete_busi
 export const clearTestData = async () => must(await supabase.rpc('clear_test_data'));
 export const setPlatform = async ({ demo = null, testing = null }) => must(await supabase.rpc('set_platform', { demo, testing }));
 export const platformSettings = async () => must(await supabase.from('platform_settings').select('*').eq('id', 1).maybeSingle());
+export const setPlatformBranding = async (name, logo) => must(await supabase.rpc('set_platform_branding', { new_name: name, new_logo: logo || null }));
+export const setBusinessLogo = async (logo) => must(await supabase.rpc('set_business_logo', { new_logo: logo || null }));
 
 export async function listProfiles(businessId) {
   let q = supabase.from('profiles').select('*').order('requested_at', { ascending: false });

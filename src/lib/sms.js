@@ -1,11 +1,13 @@
 // Real SMS through the send-sms Edge Function (mNotify). The API key lives on the server only.
 import { supabase, supabaseReady } from '../data/supabase';
+import { smsSafe } from './brand';
 
 /** Sends one SMS (or the same SMS to several numbers). Resolves { ok, error }. Never throws. */
 export async function sendSms(to, message) {
   if (!supabaseReady) return { ok: false, error: 'SMS works in the live apps only' };
   try {
-    const { data, error } = await supabase.functions.invoke('send-sms', { body: { to, message } });
+    // Plain letters keep each SMS in the cheap GSM encoding (ɔ/ɛ would double the cost).
+    const { data, error } = await supabase.functions.invoke('send-sms', { body: { to, message: smsSafe(message) } });
     if (error) {
       let detail = error.message;
       try {

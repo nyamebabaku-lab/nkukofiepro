@@ -38,7 +38,7 @@ export default function PortalLayout() {
     <div className="flex min-h-screen flex-col bg-cream-100 dark:bg-navy-950">
       <header className="sticky top-0 z-30 border-b border-cream-200 bg-cream-100/85 backdrop-blur-xl dark:border-white/5 dark:bg-navy-950/85">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
-          <Link to="/"><Logo /></Link>
+          <Link to="/"><Logo farm /></Link>
           <nav className="ml-6 hidden items-center gap-1 md:flex">
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => cx('rounded-xl px-3 py-2 text-sm font-semibold transition', isActive ? 'bg-white text-brand-800 shadow-sm dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:text-brand-800 dark:text-slate-300')}>{l.label}</NavLink>
@@ -76,7 +76,7 @@ export default function PortalLayout() {
       <main className="flex-1 animate-fade-in"><Outlet /></main>
       <footer className="border-t border-cream-200 bg-brand-900 text-brand-100 dark:border-white/5 dark:bg-navy-900">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
-          <div><Logo dark /><p className="mt-3 text-sm text-brand-100/70">{db.settings.tagline}</p></div>
+          <div><Logo dark farm /><p className="mt-3 text-sm text-brand-100/70">{db.settings.tagline}</p></div>
           <div className="space-y-2 text-sm">
             <p className="font-semibold text-white">Our farms</p>
             {db.farms.map((f) => <p key={f.id} className="flex items-center gap-2 text-brand-100/70"><MapPin className="h-4 w-4" /> {f.name} · {f.location}</p>)}

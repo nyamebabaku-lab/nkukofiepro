@@ -1,9 +1,9 @@
 // Shown instead of the app while an account waits for approval, is blocked, or is in the wrong app.
 import { Hourglass, Ban, Smartphone, RefreshCw, LogOut, WifiOff, Settings2, Loader2 } from 'lucide-react';
-import { MODE } from '../../config';
 import { Button } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
 import { roleLabel } from '../../lib/accounts';
+import { appName } from '../../lib/brand';
 import { useLive, refresh, leave } from './useLive';
 
 const TEXT = {
@@ -11,26 +11,23 @@ const TEXT = {
     icon: Hourglass,
     title: 'Waiting for approval',
     text: p.role === 'owner'
-      ? `Thanks for registering ${p.business?.name || 'your farm business'}. The PoultryPro team will check and approve it — this screen opens the app by itself as soon as it's approved.`
+      ? `Thanks for registering ${p.business?.name || 'your farm business'}. The ${appName()} team will check and approve it — this screen opens the app by itself as soon as it's approved.`
       : `Your ${roleLabel(p.role).toLowerCase()} account at ${p.business?.name || 'the farm'} is waiting for the owner to approve it. This screen updates by itself once they do.`,
   }),
   blocked: (p) => ({
     icon: Ban,
     title: p.status === 'suspended' ? 'Account suspended' : 'Account deactivated',
-    text: `${p.note ? `Reason: ${p.note}. ` : ''}Please contact ${p.role === 'owner' ? 'the PoultryPro platform team' : `${p.business?.name || 'the farm'}`} if you think this is a mistake.`,
+    text: `${p.note ? `Reason: ${p.note}. ` : ''}Please contact ${p.role === 'owner' ? `the ${appName()} platform team` : `${p.business?.name || 'the farm'}`} if you think this is a mistake.`,
   }),
   businessBlocked: (p) => ({
     icon: Ban,
     title: `${p.business?.name || 'This farm business'} is ${p.business?.status || 'closed'}`,
-    text: 'The farm business is not active on PoultryPro right now, so its app cannot be used. Please contact the farm.',
+    text: `The farm business is not active on ${appName()} right now, so its app cannot be used. Please contact the farm.`,
   }),
-  wrongApp: (p) => ({
-    icon: Smartphone,
-    title: MODE === 'admin' ? 'Please use the PoultryPro app' : 'Please use PoultryPro Admin',
-    text: MODE === 'admin'
-      ? `This app is for farm owners and platform admins. As a ${roleLabel(p.role).toLowerCase()}, sign in with the PoultryPro app instead.`
-      : 'Owners and admins manage the farm in the PoultryPro Admin app. Sign in there instead.',
-  }),
+  wrongApp: (p) => {
+    const where = p.role === 'super_admin' ? `${appName()} Admin` : p.role === 'customer' ? appName() : `${appName()} Farm`;
+    return { icon: Smartphone, title: `Please use ${where}`, text: `This app is not for your account. As ${p.role === 'super_admin' ? 'the platform admin' : `a ${roleLabel(p.role).toLowerCase()}`}, sign in with the ${where} app instead.` };
+  },
   error: (p, notice) => ({ icon: WifiOff, title: 'Could not connect', text: notice || 'Check your internet connection and try again.' }),
   unconfigured: () => ({ icon: Settings2, title: 'Almost ready', text: 'This app has not been connected to its online database yet.' }),
 };

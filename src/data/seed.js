@@ -81,10 +81,10 @@ export function buildSeed() {
   // ---------------- Settings ----------------
   const settings = {
     ...defaultSettings(),
-    businessName: 'PoultryPro Farms',
+    businessName: 'Nkukɔ Fie Farms',
     tagline: 'Fresh eggs, healthy birds, straight from the farm',
     phone: '0302 123 456',
-    email: 'hello@poultrypro.app',
+    email: 'hello@nkukofie.app',
     currency: 'GH₵',
     depositPct: 30,
     pickupCapacity: 25,
@@ -106,15 +106,15 @@ export function buildSeed() {
 
   // ---------------- Staff ----------------
   const users = [
-    { id: 'usr_owner', name: 'Kwame Asante', role: 'owner', email: 'owner@poultrypro.app', phone: '0244000111', position: 'Owner / Managing Director', farmIds: ['frm_dodowa', 'frm_ejisu', 'frm_kasoa'], salary: 0, startDate: '2019-02-01' },
-    { id: 'usr_akosua', name: 'Akosua Mensah', role: 'manager', email: 'akosua@poultrypro.app', phone: '0244210987', position: 'Farm Manager', farmIds: ['frm_dodowa', 'frm_kasoa'], salary: 3800, startDate: '2020-06-15' },
-    { id: 'usr_yaw', name: 'Yaw Darko', role: 'manager', email: 'yaw@poultrypro.app', phone: '0201554433', position: 'Farm Manager', farmIds: ['frm_ejisu'], salary: 3500, startDate: '2022-01-10' },
-    { id: 'usr_kojo', name: 'Kojo Antwi', role: 'worker', email: 'kojo@poultrypro.app', phone: '0547123321', position: 'Poultry Attendant', farmIds: ['frm_dodowa'], salary: 1800, startDate: '2021-03-01' },
-    { id: 'usr_ama', name: 'Ama Serwaa', role: 'worker', email: 'ama@poultrypro.app', phone: '0559876543', position: 'Egg Collector & Packer', farmIds: ['frm_dodowa'], salary: 1600, startDate: '2022-09-05' },
-    { id: 'usr_selorm', name: 'Selorm Agbeko', role: 'worker', email: 'selorm@poultrypro.app', phone: '0248765123', position: 'Hatchery Technician', farmIds: ['frm_dodowa'], salary: 2400, startDate: '2023-02-20' },
-    { id: 'usr_ibrahim', name: 'Ibrahim Fuseini', role: 'worker', email: 'ibrahim@poultrypro.app', phone: '0209988776', position: 'Poultry Attendant', farmIds: ['frm_ejisu'], salary: 1700, startDate: '2023-05-02' },
-    { id: 'usr_kwabena', name: 'Kwabena Owusu', role: 'worker', email: 'kwabena@poultrypro.app', phone: '0541112223', position: 'Driver & Sales', farmIds: ['frm_ejisu'], salary: 2000, startDate: '2021-11-11' },
-    { id: 'usr_efua', name: 'Efua Nyarko', role: 'worker', email: 'efua@poultrypro.app', phone: '0275544332', position: 'Poultry Attendant', farmIds: ['frm_kasoa'], salary: 1700, startDate: '2024-01-08' },
+    { id: 'usr_owner', name: 'Kwame Asante', role: 'owner', email: 'owner@nkukofie.app', phone: '0244000111', position: 'Owner / Managing Director', farmIds: ['frm_dodowa', 'frm_ejisu', 'frm_kasoa'], salary: 0, startDate: '2019-02-01' },
+    { id: 'usr_akosua', name: 'Akosua Mensah', role: 'manager', email: 'akosua@nkukofie.app', phone: '0244210987', position: 'Farm Manager', farmIds: ['frm_dodowa', 'frm_kasoa'], salary: 3800, startDate: '2020-06-15' },
+    { id: 'usr_yaw', name: 'Yaw Darko', role: 'manager', email: 'yaw@nkukofie.app', phone: '0201554433', position: 'Farm Manager', farmIds: ['frm_ejisu'], salary: 3500, startDate: '2022-01-10' },
+    { id: 'usr_kojo', name: 'Kojo Antwi', role: 'worker', email: 'kojo@nkukofie.app', phone: '0547123321', position: 'Poultry Attendant', farmIds: ['frm_dodowa'], salary: 1800, startDate: '2021-03-01' },
+    { id: 'usr_ama', name: 'Ama Serwaa', role: 'worker', email: 'ama@nkukofie.app', phone: '0559876543', position: 'Egg Collector & Packer', farmIds: ['frm_dodowa'], salary: 1600, startDate: '2022-09-05' },
+    { id: 'usr_selorm', name: 'Selorm Agbeko', role: 'worker', email: 'selorm@nkukofie.app', phone: '0248765123', position: 'Hatchery Technician', farmIds: ['frm_dodowa'], salary: 2400, startDate: '2023-02-20' },
+    { id: 'usr_ibrahim', name: 'Ibrahim Fuseini', role: 'worker', email: 'ibrahim@nkukofie.app', phone: '0209988776', position: 'Poultry Attendant', farmIds: ['frm_ejisu'], salary: 1700, startDate: '2023-05-02' },
+    { id: 'usr_kwabena', name: 'Kwabena Owusu', role: 'worker', email: 'kwabena@nkukofie.app', phone: '0541112223', position: 'Driver & Sales', farmIds: ['frm_ejisu'], salary: 2000, startDate: '2021-11-11' },
+    { id: 'usr_efua', name: 'Efua Nyarko', role: 'worker', email: 'efua@nkukofie.app', phone: '0275544332', position: 'Poultry Attendant', farmIds: ['frm_kasoa'], salary: 1700, startDate: '2024-01-08' },
   ].map((u) => ({ ...u, password: 'demo123', status: 'active', momo: { network: 'mtn', number: u.phone }, createdAt: T(-400) }));
 
   // ---------------- Farms & pens ----------------
@@ -458,7 +458,7 @@ export function buildSeed() {
     const total = r2(ls.reduce((a, l) => a + l.amount, 0));
     const c = custById[customerId];
     const o = {
-      id: id('ord'), ref: `PP-${ref++}`, customerId, customerName: c?.name || 'Walk-in customer', phone: c?.phone || '', farmId, lines: ls, subtotal: total, discount: 0, total,
+      id: id('ord'), ref: `NF-${ref++}`, customerId, customerName: c?.name || 'Walk-in customer', phone: c?.phone || '', farmId, lines: ls, subtotal: total, discount: 0, total,
       pickupDate: D(pickupDay), status, channel, note, pickedAt: status === 'picked' ? T(pickupDay, hh + 1) : null, readyAt: status === 'ready' ? T(pickupDay - 1, 15) : null,
       cancelledAt: status === 'cancelled' ? T(day + 1, 9) : null, by: channel === 'portal' ? 'Customer' : 'Ama Serwaa', createdAt: T(day, hh),
     };
@@ -679,7 +679,7 @@ export function buildSeed() {
     } else if (ev.kind === 'wd' && bal > 30000 && ev.at < T(-1)) {
       const amt = Math.floor((bal * 0.7) / 1000) * 1000;
       bal -= amt;
-      const dest = R() < 0.8 ? { type: 'bank', bank: 'GCB Bank', number: '****4410', name: 'PoultryPro Farms Ltd' } : { type: 'momo', network: 'mtn', number: '0244000111', name: 'Kwame Asante' };
+      const dest = R() < 0.8 ? { type: 'bank', bank: 'GCB Bank', number: '****4410', name: 'Nkuko Fie Farms Ltd' } : { type: 'momo', network: 'mtn', number: '0244000111', name: 'Kwame Asante' };
       walletTx.push({ id: id('wtx'), type: 'withdrawal', amount: -amt, ref: `WD${seq}`, payoutRef: `TRX${10000000 + seq}`, destination: dest, note: `Withdrawal to ${dest.type === 'bank' ? 'GCB Bank ****4410' : 'MTN MoMo 0244000111'}`, at: ev.at, status: 'success', by: 'usr_owner' });
     }
   }

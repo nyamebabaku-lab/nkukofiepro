@@ -1,7 +1,7 @@
 // Product & staff photos live in IndexedDB (localStorage is too small for images).
 import { useEffect, useState } from 'react';
 
-const DB = 'poultrypro-photos';
+const DB = 'nkukofie-photos';
 const STORE = 'photos';
 let dbp;
 const open = () =>

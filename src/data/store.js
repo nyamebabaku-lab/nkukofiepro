@@ -6,7 +6,7 @@ import { buildSeed, buildEmpty } from './seed';
 import { LIVE, storeKey } from '../config';
 import { uid, nowISO } from '../lib/format';
 
-export const DB_KEY = storeKey('poultrypro-db');
+export const DB_KEY = storeKey('nkukofie-db');
 export const DB_VERSION = 1;
 
 const PREFIX = {
@@ -28,7 +28,7 @@ const safeStorage = {
     } catch (e) {
       if (Date.now() - warned > 30000) {
         warned = Date.now();
-        window.dispatchEvent(new CustomEvent('poultrypro-storage-full', { detail: e.name }));
+        window.dispatchEvent(new CustomEvent('nkukofie-storage-full', { detail: e.name }));
       }
     }
   },
@@ -106,7 +106,7 @@ export const useSession = create(
       toggleDark: () => set((s) => ({ dark: !s.dark })),
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
     }),
-    { name: storeKey('poultrypro-session') },
+    { name: storeKey('nkukofie-session') },
   ),
 );
 
@@ -125,6 +125,6 @@ export const useCart = create(
       setQty: (productId, qty) => set((s) => ({ lines: qty <= 0 ? s.lines.filter((l) => l.productId !== productId) : s.lines.map((l) => (l.productId === productId ? { ...l, qty } : l)) })),
       clear: () => set({ lines: [] }),
     }),
-    { name: storeKey('poultrypro-cart') },
+    { name: storeKey('nkukofie-cart') },
   ),
 );

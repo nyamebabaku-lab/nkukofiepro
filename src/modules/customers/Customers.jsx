@@ -7,12 +7,13 @@ import { PageHeader, Button, Tabs, DataTable, Badge, StatCard, Card, CardHeader,
 import { Bars } from '../../components/charts';
 import { customerAccount, debtAgeing } from '../../lib/orders';
 import { money, moneyShort, fmtDate, sum } from '../../lib/format';
+import { appName, smsPrefix } from '../../lib/brand';
 
 export const CUSTOMER_TYPES = [{ value: 'retail', label: 'Household' }, { value: 'trader', label: 'Trader' }, { value: 'business', label: 'Business' }];
 export const typeLabel = (v) => CUSTOMER_TYPES.find((t) => t.value === v)?.label || v;
 
 export function remind(db, c, amount) {
-  db.sms(c.phone, `PoultryPro: Hello ${c.name}, you have an outstanding balance of ${money(amount)}. Pay any time with MoMo or card in the PoultryPro shop. Thank you!`);
+  db.sms(c.phone, `${smsPrefix()}: Hello ${c.name}, you have an outstanding balance of ${money(amount)}. Pay any time with MoMo or card in the ${appName()} app. Thank you!`);
   db.notify({ toCustomerId: c.id, title: 'Balance reminder', text: `You owe ${money(amount)}. Tap to pay with MoMo or card.`, link: '/account' });
   db.log('Debt reminder sent', `${c.name} · ${money(amount)}`);
 }

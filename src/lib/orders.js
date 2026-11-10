@@ -5,6 +5,7 @@ import { money, nowISO, today, sum, round2, fmtDate } from './format';
 import { isOnline, methodLabel, newRef } from './payments';
 import { productStock } from './stock';
 import { flockIndex } from './flock';
+import { smsPrefix } from './brand';
 
 export const ORDER_STATUS = {
   booked: { label: 'Booked', tone: 'sky' },
@@ -119,7 +120,7 @@ export function createOrder({ customerId, customerName, phone, farmId, lines, pi
   const total = round2(Math.max(0, priced.subtotal - (discount || 0)));
   const cust = db.customers.find((c) => c.id === customerId);
   const order = db.add('orders', {
-    ref: newRef('PP-'),
+    ref: newRef('NF-'),
     customerId: customerId || null,
     customerName: cust?.name || customerName || 'Walk-in customer',
     phone: cust?.phone || phone || '',
@@ -139,7 +140,7 @@ export function createOrder({ customerId, customerName, phone, farmId, lines, pi
   const farm = db.farms.find((f) => f.id === farmId);
   if (channel === 'portal') {
     db.notify({ toRoles: ['owner', 'manager'], farmId, title: 'New booking', text: `${order.customerName} · ${money(total)} · pick-up ${fmtDate(order.pickupDate)}`, link: `/app/orders/${order.id}` });
-    if (order.phone) db.sms(order.phone, `PoultryPro: Order ${order.ref} booked for pick-up at ${farm?.name} on ${fmtDate(order.pickupDate)}. Total ${money(total)}.`);
+    if (order.phone) db.sms(order.phone, `${smsPrefix()}: Order ${order.ref} booked for pick-up at ${farm?.name} on ${fmtDate(order.pickupDate)}. Total ${money(total)}.`);
   }
   db.log('Order created', `${order.ref} · ${order.customerName} · ${money(total)}`, { farmId });
   if (status === 'picked') recordBirdSales(order);
@@ -161,7 +162,7 @@ export function recordPayment({ orderId, customerId, amount, method, account = '
     db.notify({ toRoles: ['owner'], title: `Payment received · ${methodLabel(method)}`, text: `${who} paid ${money(amount)}${order ? ` for ${order.ref}` : ''}`, link: order ? `/app/orders/${order.id}` : '/app/finance' });
     if (pay.customerId) db.notify({ toCustomerId: pay.customerId, title: 'Payment received', text: `Thank you! We received ${money(amount)}${order ? ` for order ${order.ref}` : ''}.`, link: '/account' });
     const phone = order?.phone || db.customers.find((c) => c.id === pay.customerId)?.phone;
-    if (phone) db.sms(phone, `PoultryPro: Payment of ${money(amount)} received (${methodLabel(method)}). Ref ${pay.ref}.`);
+    if (phone) db.sms(phone, `${smsPrefix()}: Payment of ${money(amount)} received (${methodLabel(method)}). Ref ${pay.ref}.`);
   }
   db.log(amount >= 0 ? 'Payment recorded' : 'Refund issued', `${who} · ${money(Math.abs(amount))} · ${methodLabel(method)}`);
   return pay;
@@ -218,7 +219,7 @@ export function setOrderStatus(orderId, status, { refund = false, refundMethod }
     cancelled: `Order ${o.ref} was cancelled.`,
   }[status];
   if (o.customerId && msg) db.notify({ toCustomerId: o.customerId, title: ORDER_STATUS[status].label, text: msg, link: '/account/orders' });
-  if (o.phone && msg) db.sms(o.phone, `PoultryPro: ${msg}`);
+  if (o.phone && msg) db.sms(o.phone, `${smsPrefix()}: ${msg}`);
   db.log(`Order ${ORDER_STATUS[status].label.toLowerCase()}`, `${o.ref} · ${o.customerName}`, { farmId: o.farmId });
 }
 

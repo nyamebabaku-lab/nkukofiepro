@@ -96,7 +96,7 @@ export default function Login() {
           </div>
           <form onSubmit={submit} className="space-y-4">
             <Segmented className="w-full [&>button]:flex-1" options={[{ value: 'staff', label: 'Farm staff' }, { value: 'customer', label: 'Customer' }]} value={mode} onChange={setMode} />
-            <Field label="Email or phone"><Input value={id} onChange={(e) => setId(e.target.value)} placeholder={mode === 'staff' ? 'owner@poultrypro.app' : 'kofi@demo.com or 0244123456'} autoComplete="username" /></Field>
+            <Field label="Email or phone"><Input value={id} onChange={(e) => setId(e.target.value)} placeholder={mode === 'staff' ? 'owner@nkukofie.app' : 'kofi@demo.com or 0244123456'} autoComplete="username" /></Field>
             <Field label="Password">
               <div className="relative">
                 <Input type={show ? 'text' : 'password'} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="demo123" autoComplete="current-password" />

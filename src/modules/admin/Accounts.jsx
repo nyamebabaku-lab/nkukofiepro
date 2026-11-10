@@ -7,6 +7,7 @@ import { listProfiles, setAccountStatus, setMemberRole, deleteAccount, regenerat
 import { TempPasswordModal } from '../live/Passwords';
 import { sendSms } from '../../lib/sms';
 import { fmtDateTime } from '../../lib/format';
+import { appName, smsPrefix } from '../../lib/brand';
 
 /** Action buttons shared with the super admin's account list. */
 export function AccountActions({ p, onDone, compact }) {
@@ -37,7 +38,7 @@ export function AccountActions({ p, onDone, compact }) {
     <div className="flex flex-wrap justify-end gap-1.5">
       {p.status === 'pending' && (
         <>
-          <Button size={size} icon={UserCheck} onClick={() => run(async () => { await setAccountStatus(p.user_id, 'active'); sendSms(p.phone, `PoultryPro: Hello ${p.full_name.split(' ')[0]}, your account has been approved. You can now sign in with your phone number and password.`); }, `${p.full_name} approved`)}>Approve</Button>
+          <Button size={size} icon={UserCheck} onClick={() => run(async () => { await setAccountStatus(p.user_id, 'active'); sendSms(p.phone, `${smsPrefix()}: Hello ${p.full_name.split(' ')[0]}, your account has been approved. You can now sign in with your phone number and password.`); }, `${p.full_name} approved`)}>Approve</Button>
           <Button size={size} variant="soft-red" icon={UserX} onClick={() => ask('deactivated')}>Reject</Button>
         </>
       )}
@@ -85,8 +86,8 @@ export default function Accounts() {
   const resets = others.filter((p) => p.reset_requested_at && p.status !== 'pending');
   const lists = { pending, staff: others.filter((p) => p.role !== 'customer' && p.status !== 'pending'), customers: others.filter((p) => p.role === 'customer' && p.status !== 'pending') };
   const share = () => {
-    const text = `Join ${profile.business?.name} on PoultryPro: install the PoultryPro app, tap "Create account" and enter the farm code ${code}.`;
-    if (navigator.share) navigator.share({ title: 'PoultryPro farm code', text }).catch(() => {});
+    const text = `Join ${profile.business?.name} on ${appName()}: customers install the ${appName()} app and staff install ${appName()} Farm, tap "Create account" or "Join a farm" and enter the farm code ${code}.`;
+    if (navigator.share) navigator.share({ title: `${appName()} farm code`, text }).catch(() => {});
     else navigator.clipboard?.writeText(text).then(() => toast.success('Invitation copied'));
   };
   const newCode = async () => {
@@ -108,7 +109,7 @@ export default function Accounts() {
         <Card className="grain relative overflow-hidden bg-brand-800 p-5 text-white">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-gold-300"><KeyRound className="h-4 w-4" /> Farm code</p>
           <p className="mt-2 font-display text-4xl font-semibold tracking-wider">{code}</p>
-          <p className="mt-1 text-sm text-brand-100/80">Customers and staff enter this code when they create an account in the PoultryPro app.</p>
+          <p className="mt-1 text-sm text-brand-100/80">Customers and staff enter this code when they create an account — customers in {appName()}, staff in {appName()} Farm.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" className="bg-gold-500 text-brand-950 hover:bg-gold-400" icon={Share2} onClick={share}>Share invite</Button>
             <Button size="sm" variant="secondary" className="bg-white/10 text-white ring-white/20 hover:bg-white/20" icon={Copy} onClick={() => navigator.clipboard?.writeText(code).then(() => toast.success('Code copied'))}>Copy</Button>
@@ -155,7 +156,7 @@ export default function Accounts() {
           ]}
         />
       )}
-      <p className="mt-4 text-xs text-slate-400">Pay, farms and job titles for workers are edited on the Staff page. {roleLabel('owner')} accounts are managed by the PoultryPro platform team.</p>
+      <p className="mt-4 text-xs text-slate-400">Pay, farms and job titles for workers are edited on the Staff page. {roleLabel('owner')} accounts are managed by the {appName()} platform team.</p>
     </div>
   );
 }

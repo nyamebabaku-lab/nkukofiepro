@@ -1,5 +1,5 @@
-// PoultryPro Admin (live): farm-business owners run their farms and approve their people;
-// the super admin manages the whole platform.
+// Admin app (live): the platform super admin — approves farm businesses, manages every account,
+// branding and data, and can open any farm read-only for support.
 import { lazy, Suspense } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useSession } from '../data/store';

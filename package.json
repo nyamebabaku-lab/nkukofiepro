@@ -1,11 +1,11 @@
 {
-  "name": "poultrypro",
+  "name": "nkukofiepro",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "VITE_APP=main vite",
-    "build": "npm run build:main && npm run build:admin && npm run build:demo",
+    "build": "npm run build:main && npm run build:farm && npm run build:admin && npm run build:demo",
     "lint": "eslint .",
     "preview": "vite preview",
     "dev:admin": "VITE_APP=admin vite",
@@ -13,7 +13,9 @@
     "build:main": "VITE_APP=main vite build",
     "build:admin": "VITE_APP=admin vite build",
     "build:demo": "VITE_APP=demo vite build",
-    "sms:setup": "bash scripts/setup-sms.sh"
+    "sms:setup": "bash scripts/setup-sms.sh",
+    "dev:farm": "VITE_APP=farm vite",
+    "build:farm": "VITE_APP=farm vite build"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">PoultryPro Admin</string>
-    <string name="title_activity_main">PoultryPro Admin</string>
-    <string name="package_name">com.poultrypro.admin</string>
-    <string name="custom_url_scheme">com.poultrypro.admin</string>
+    <string name="app_name">Nkukɔ Fie Pro Admin</string>
+    <string name="title_activity_main">Nkukɔ Fie Pro Admin</string>
+    <string name="package_name">com.nkukofie.admin</string>
+    <string name="custom_url_scheme">com.nkukofie.admin</string>
 </resources>

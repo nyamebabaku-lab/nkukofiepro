@@ -1,11 +1,13 @@
 // Super admin: approve and manage farm businesses and every account; clear demo & test data.
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MessageSquare, Loader2, KeyRound, Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Palette, ImagePlus, RotateCcw, Save, MessageSquare, Loader2, KeyRound, Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
 import { useSession } from '../../data/store';
 import { Button, Card, CardHeader, Badge, Tabs, DataTable, Avatar, StatCard, Modal, Field, Input, EmptyState, Toaster, confirmDialog, toast, cx } from '../../components/ui';
-import Logo from '../../components/layout/Logo';
+import Logo, { BrandMark } from '../../components/layout/Logo';
+import { logoFromFile, setPlatformBrand, splitName, appName, smsPrefix } from '../../lib/brand';
+import { DEFAULT_APP_NAME } from '../../config';
 import { AccountActions } from '../admin/Accounts';
-import { listBusinesses, listProfiles, listAudit, setBusinessStatus, setBusinessTest, deleteBusiness, clearTestData, setPlatform, platformSettings, watchAccounts, enterApp, resetPassword, STATUS, roleLabel } from '../../lib/accounts';
+import { listBusinesses, listProfiles, listAudit, setBusinessStatus, setBusinessTest, deleteBusiness, clearTestData, setPlatform, platformSettings, setPlatformBranding, watchAccounts, enterApp, resetPassword, STATUS, roleLabel } from '../../lib/accounts';
 import { TempPasswordModal, ChangePasswordModal } from '../live/Passwords';
 import { sendSms, smsBalance, smsHistory } from '../../lib/sms';
 import { leave, useLive } from '../live/useLive';
@@ -23,7 +25,7 @@ function BusinessActions({ b, onDone, onOpen, ownerPhone }) {
   };
   return (
     <div className="flex flex-wrap justify-end gap-1.5">
-      {b.status === 'pending' && <Button size="sm" icon={CheckCircle2} onClick={() => run(async () => { await setBusinessStatus(b.id, 'active'); if (ownerPhone) sendSms(ownerPhone, `PoultryPro: ${b.name} has been approved. Sign in to PoultryPro Admin to set up your farm and share your farm code ${b.farm_code} with your team and customers.`); }, `${b.name} approved`)}>Approve</Button>}
+      {b.status === 'pending' && <Button size="sm" icon={CheckCircle2} onClick={() => run(async () => { await setBusinessStatus(b.id, 'active'); if (ownerPhone) sendSms(ownerPhone, `${smsPrefix()}: ${b.name} has been approved. Sign in to ${appName()} Farm to set up your farm and share your farm code ${b.farm_code} with your team and customers.`); }, `${b.name} approved`)}>Approve</Button>}
       {b.status === 'active' && <Button size="sm" variant="secondary" icon={Eye} onClick={() => onOpen(b)}>Open</Button>}
       {b.status === 'active' && <Button size="sm" variant="secondary" icon={PauseCircle} onClick={() => run(() => setBusinessStatus(b.id, 'suspended'), 'Business suspended')}>Suspend</Button>}
       {(b.status === 'suspended' || b.status === 'deactivated') && <Button size="sm" variant="secondary" icon={PlayCircle} onClick={() => run(() => setBusinessStatus(b.id, 'active'), 'Business activated')}>Activate</Button>}
@@ -76,7 +78,7 @@ function SmsCard() {
   useEffect(() => load(), [load]);
   const test = async () => {
     setBusy(true);
-    const r = await sendSms(to, 'PoultryPro: test message — SMS through mNotify is working.');
+    const r = await sendSms(to, `${smsPrefix()}: test message — SMS through mNotify is working.`);
     setBusy(false);
     if (r.ok) toast.success('Test SMS sent', to);
     else toast.error('SMS not sent', r.error);
@@ -106,6 +108,73 @@ function SmsCard() {
         </div>
       </div>
     </Card>
+  );
+}
+
+/** App name + logo for the whole platform (login screens, splash, menus, receipts without a farm logo). */
+function BrandingTab({ settings, reload }) {
+  const [name, setName] = useState(settings.app_name || DEFAULT_APP_NAME);
+  const [logo, setLogo] = useState(settings.app_logo || null);
+  const [busy, setBusy] = useState(false);
+  const file = useRef();
+  const pick = async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      setLogo(await logoFromFile(f));
+    } catch (err) {
+      toast.error('Logo not used', err.message);
+    }
+  };
+  const save = async () => {
+    setBusy(true);
+    try {
+      await setPlatformBranding(name.trim(), logo);
+      setPlatformBrand({ name: name.trim(), logo });
+      toast.success('Branding saved', 'All apps show the new name and logo the next time they open');
+      reload();
+    } catch (e) {
+      toast.error('Not saved', e.message);
+    }
+    setBusy(false);
+  };
+  const [first, last] = splitName(name);
+  return (
+    <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+      <Card>
+        <CardHeader title="App name & logo" subtitle="Shown on every sign-in screen, menu and receipt" icon={Palette} />
+        <div className="space-y-5 p-5">
+          <Field label="App name" hint="e.g. Nkukɔ Fie Pro — the last word is shown in gold"><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} /></Field>
+          <div>
+            <span className="label">Logo</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <BrandMark src={logo} className="h-16 w-16" />
+              <Button variant="secondary" icon={ImagePlus} onClick={() => file.current.click()}>{logo ? 'Change logo' : 'Upload logo'}</Button>
+              {logo && <Button variant="ghost" icon={RotateCcw} onClick={() => setLogo(null)}>Use the egg mark</Button>}
+              <input ref={file} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pick} />
+            </div>
+            <p className="mt-2 text-xs text-slate-500">A square PNG with a transparent background looks best. It is resized to 256 × 256.</p>
+          </div>
+          <Button icon={busy ? Loader2 : Save} disabled={busy || name.trim().length < 2} onClick={save}>Save branding</Button>
+          <p className="text-xs text-slate-500">Installed Android apps keep the name and icon they were built with until the next APK; everything inside the apps updates straight away.</p>
+        </div>
+      </Card>
+      <Card>
+        <CardHeader title="Preview" />
+        <div className="space-y-4 p-5">
+          {[['bg-brand-900', true], ['bg-cream-100', false]].map(([bg, dark]) => (
+            <div key={bg} className={cx('flex items-center gap-3 rounded-2xl p-5', bg)}>
+              <BrandMark src={logo} className="h-12 w-12" />
+              <div className="leading-none">
+                <p className={cx('font-display text-2xl font-semibold', dark ? 'text-cream-100' : 'text-brand-900')}>{first}{last && <span className="text-gold-500"> {last}</span>}</p>
+                <p className={cx('mt-1 text-[10px] font-semibold uppercase tracking-[.2em]', dark ? 'text-brand-200/70' : 'text-slate-500')}>Farm management</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
   );
 }
 
@@ -220,7 +289,7 @@ export default function Platform() {
       </header>
       <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
         <h1 className="font-display text-3xl font-semibold text-brand-900 dark:text-white">Platform</h1>
-        <p className="mb-5 text-sm text-slate-500">Every farm business and account on PoultryPro</p>
+        <p className="mb-5 text-sm text-slate-500">Every farm business and account on {appName()}</p>
         <Tabs
           className="mb-5"
           value={tab}
@@ -229,6 +298,7 @@ export default function Platform() {
             { value: 'overview', label: 'Overview', icon: LayoutDashboard, count: pendingBiz.length + pendingUsers.length || undefined },
             { value: 'businesses', label: 'Businesses', icon: Building2, count: data.businesses.length },
             { value: 'accounts', label: 'Accounts', icon: Users, count: data.profiles.length },
+            { value: 'branding', label: 'Branding', icon: Palette },
             { value: 'data', label: 'Data', icon: Database },
           ]}
         />
@@ -308,6 +378,7 @@ export default function Platform() {
             ]}
           />
         )}
+        {tab === 'branding' && data.settings && <BrandingTab settings={data.settings} reload={load} />}
         {tab === 'data' && data.settings && <DataTab businesses={data.businesses} profiles={data.profiles} settings={data.settings} reload={load} />}
       </main>
       <ChangePasswordModal open={pw} onClose={() => setPw(false)} />

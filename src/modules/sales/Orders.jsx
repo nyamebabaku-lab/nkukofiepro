@@ -47,7 +47,7 @@ export default function Orders() {
         searchText={(o) => `${o.ref} ${o.customerName} ${o.phone}`}
         columns={[
           { key: 'ref', label: 'Order', render: (o) => <div><p className="font-bold">{o.ref}</p><p className="text-xs text-slate-400">{fmtDate(o.createdAt)}</p></div> },
-          { key: 'customerName', label: 'Customer', render: (o) => <div><p className="font-medium">{o.customerName}</p><p className="max-w-[220px] truncate text-xs text-slate-400">{o.lines.map((l) => `${l.qty} ${l.name.split(' —')[0]}`).join(', ')}</p></div> },
+          { key: 'customerName', label: 'Customer', render: (o) => <div><p className="font-medium">{o.customerName}</p><p className="max-w-[220px] truncate text-xs text-slate-400">{o.lines.map((l) => `${l.qty} ${String(l.name || 'Item').split(' —')[0]}`).join(', ')}</p></div> },
           { key: 'farm', label: 'Farm', render: (o) => farm(o.farmId), hideOnMobile: true },
           { key: 'pickupDate', label: 'Pick-up', render: (o) => <span className={o.pickupDate < today() && ['booked', 'ready'].includes(o.status) ? 'font-semibold text-accent-600' : ''}>{fmtDate(o.pickupDate, 'd MMM')}</span> },
           { key: 'total', label: 'Total', render: (o) => <b>{money(o.total)}</b> },

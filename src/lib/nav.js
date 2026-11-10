@@ -40,7 +40,7 @@ export const NAV = [
     { key: 'tasks', label: 'Tasks', path: '/app/tasks', icon: ListChecks },
     { key: 'attendance', label: 'Attendance', path: '/app/attendance', icon: Clock },
     { key: 'maintenance', label: 'Equipment', path: '/app/maintenance', icon: Wrench },
-    ...(import.meta.env.VITE_APP === 'admin' ? [{ key: 'accounts', label: 'Accounts & approvals', path: '/app/accounts', icon: UserCheck }] : []),
+    ...(import.meta.env.VITE_APP === 'farm' || import.meta.env.VITE_APP === 'admin' ? [{ key: 'accounts', label: 'Accounts & approvals', path: '/app/accounts', icon: UserCheck }] : []),
   ] },
   { group: 'Insights', items: [
     { key: 'reports', label: 'Reports', path: '/app/reports', icon: BarChart3 },

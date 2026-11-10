@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sets up real SMS (mNotify) on the PoultryPro Supabase project:
+# Sets up real SMS (mNotify) on the Nkukɔ Fie Pro Supabase project:
 #   1. creates the sms_log table            (supabase/migrations/20261105020000_sms.sql)
 #   2. stores the mNotify key as a secret    (from supabase/functions/.env — never published)
 #   3. deploys the send-sms Edge Function
@@ -21,7 +21,7 @@ python3 - "$REF" <<'PY'
 import json, os, sys, urllib.request
 sql = open('supabase/migrations/20261105020000_sms.sql').read()
 req = urllib.request.Request(f'https://api.supabase.com/v1/projects/{sys.argv[1]}/database/query', data=json.dumps({'query': sql}).encode(),
-    headers={'Authorization': 'Bearer ' + os.environ['SUPABASE_ACCESS_TOKEN'], 'Content-Type': 'application/json', 'User-Agent': 'poultrypro-setup'})
+    headers={'Authorization': 'Bearer ' + os.environ['SUPABASE_ACCESS_TOKEN'], 'Content-Type': 'application/json', 'User-Agent': 'nkukofie-setup'})
 urllib.request.urlopen(req, timeout=60).read()
 print('  done')
 PY
@@ -32,4 +32,4 @@ npx --yes supabase@2.54.11 secrets set --project-ref "$REF" --env-file supabase/
 echo "→ Deploying the send-sms function…"
 npx --yes supabase@2.54.11 functions deploy send-sms --project-ref "$REF" --use-api
 
-echo "✓ SMS is ready. Send a test from PoultryPro Admin → Platform → Data → SMS."
+echo "✓ SMS is ready. Send a test from Nkukɔ Fie Pro Admin → Platform → Data → SMS."

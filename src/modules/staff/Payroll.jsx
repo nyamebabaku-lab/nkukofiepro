@@ -112,7 +112,7 @@ export default function Payroll() {
       <Modal open={!!slip} onClose={() => setSlip(null)} title="Payslip" size="md" footer={<Button icon={Printer} onClick={() => printElement('slip', 'Payslip')}>Print</Button>}>
         {slip && (
           <div id="slip" className="text-sm">
-            <div className="flex items-start justify-between border-b border-cream-200 pb-4"><Logo /><div className="text-right"><p className="font-display text-lg font-semibold">Payslip</p><p className="text-xs text-slate-500">{monthLabel(month)}</p></div></div>
+            <div className="flex items-start justify-between border-b border-cream-200 pb-4"><Logo farm /><div className="text-right"><p className="font-display text-lg font-semibold">Payslip</p><p className="text-xs text-slate-500">{monthLabel(month)}</p></div></div>
             <p className="mt-4 font-bold">{slip.name}</p>
             <p className="text-xs text-slate-500">{db.users.find((u) => u.id === slip.userId)?.position}</p>
             <div className="mt-4 space-y-2">

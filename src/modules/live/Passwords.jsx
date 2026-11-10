@@ -6,6 +6,7 @@ import { Button, Field, Input, Modal, toast } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
 import { changeMyPassword } from '../../lib/accounts';
 import { useLive, refresh, leave } from './useLive';
+import { smsPrefix } from '../../lib/brand';
 
 function PasswordFields({ v, setV }) {
   const [show, setShow] = useState(false);
@@ -81,7 +82,7 @@ export function MustChangePassword() {
 /** Owner / super admin: the temporary password to pass on. */
 export function TempPasswordModal({ result, onClose }) {
   if (!result) return null;
-  const text = `PoultryPro: your temporary password is ${result.code}. Sign in with your phone number (${result.phone}) and this password, then choose a new one.`;
+  const text = `${smsPrefix()}: your temporary password is ${result.code}. Sign in with your phone number (${result.phone}) and this password, then choose a new one.`;
   return (
     <Modal open onClose={onClose} title={`Temporary password for ${result.name}`} subtitle="Give it to them in person, by phone call or WhatsApp" size="sm" footer={<Button onClick={onClose}>Done</Button>}>
       <p className="rounded-2xl bg-brand-800 py-5 text-center font-display text-4xl font-semibold tracking-[.3em] text-white">{result.code}</p>

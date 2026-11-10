@@ -1,4 +1,4 @@
-package com.poultrypro.app;
+package com.nkukofie.farm;
 
 import com.getcapacitor.BridgeActivity;
 

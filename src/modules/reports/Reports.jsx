@@ -145,7 +145,7 @@ export default function Reports() {
       {tab === 'sales' && (
         <div className="space-y-6">
           <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-            <Card><CardHeader title="Top products" subtitle={`${money(sum(data.sales, (o) => o.total))} from ${data.sales.length} orders`} /><div className="px-3 pb-4"><Bars layout="vertical" data={prodRows.slice(0, 8).map((r) => ({ day: r.name.split(' —')[0], amount: Math.round(r.amount) }))} series={[{ key: 'amount', name: 'Sales' }]} fmt={(v) => money(v)} yFmt={(v) => moneyShort(v).replace('GH₵ ', '')} height={300} /></div></Card>
+            <Card><CardHeader title="Top products" subtitle={`${money(sum(data.sales, (o) => o.total))} from ${data.sales.length} orders`} /><div className="px-3 pb-4"><Bars layout="vertical" data={prodRows.slice(0, 8).map((r) => ({ day: String(r.name || 'Item').split(' —')[0], amount: Math.round(r.amount) }))} series={[{ key: 'amount', name: 'Sales' }]} fmt={(v) => money(v)} yFmt={(v) => moneyShort(v).replace('GH₵ ', '')} height={300} /></div></Card>
             <Card><CardHeader title="How customers paid" /><div className="p-5"><Donut data={fold(methods)} fmt={(v) => moneyShort(v)} /></div></Card>
           </div>
           <div className="grid gap-6 xl:grid-cols-2">

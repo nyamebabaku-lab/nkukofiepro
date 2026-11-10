@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nkukɔ Fie Pro Farm</string>
+    <string name="title_activity_main">Nkukɔ Fie Pro Farm</string>
+    <string name="package_name">com.nkukofie.farm</string>
+    <string name="custom_url_scheme">com.nkukofie.farm</string>
+</resources>

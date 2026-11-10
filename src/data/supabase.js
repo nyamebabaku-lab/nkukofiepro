@@ -7,7 +7,7 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabaseReady = Boolean(LIVE && url && key);
 export const supabase = supabaseReady
-  ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: storeKey('poultrypro-auth') }, realtime: { params: { eventsPerSecond: 20 } } })
+  ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: storeKey('nkukofie-auth') }, realtime: { params: { eventsPerSecond: 20 } } })
   : null;
 
 /** 024 123 4567 / +233 24 123 4567 → 0241234567, or null if it isn't a Ghana mobile number. */
@@ -19,7 +19,7 @@ export function normPhone(p) {
 }
 
 // Supabase logins are email-based; each phone number maps to a private address (no SMS needed).
-export const phoneEmail = (phone) => `233${normPhone(phone).slice(1)}@phone.poultrypro.app`;
+export const phoneEmail = (phone) => `233${normPhone(phone).slice(1)}@phone.nkukofie.app`;
 
 /** Friendlier wording for common Supabase errors. */
 export function errorText(e) {

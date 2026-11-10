@@ -67,7 +67,7 @@ export default function Account() {
               {upcoming.map((o) => (
                 <button key={o.id} type="button" onClick={() => navigate('/account/orders', { state: { open: o.id } })} className="flex w-full items-center gap-3 rounded-2xl border border-cream-200 p-3 text-left hover:border-brand-300 dark:border-white/10">
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-xl bg-gold-100 text-gold-800 dark:bg-gold-500/15 dark:text-gold-300"><span className="text-[10px] font-bold uppercase">{fmtDate(o.pickupDate, 'MMM')}</span><span className="text-lg font-extrabold leading-none">{fmtDate(o.pickupDate, 'd')}</span></div>
-                  <div className="min-w-0 flex-1"><p className="font-semibold">{o.ref} · {db.farms.find((f) => f.id === o.farmId)?.short}</p><p className="truncate text-xs text-slate-500">{o.lines.map((l) => `${l.qty} ${l.name.split(' —')[0]}`).join(', ')}</p></div>
+                  <div className="min-w-0 flex-1"><p className="font-semibold">{o.ref} · {db.farms.find((f) => f.id === o.farmId)?.short}</p><p className="truncate text-xs text-slate-500">{o.lines.map((l) => `${l.qty} ${String(l.name || 'Item').split(' —')[0]}`).join(', ')}</p></div>
                   <Badge tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Badge>
                 </button>
               ))}

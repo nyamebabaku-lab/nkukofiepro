@@ -7,6 +7,7 @@ import { Bars, Donut } from '../../components/charts';
 import { addExpense, EXPENSE_CATEGORIES, expenseLabel } from '../../lib/wallet';
 import { categoryLabel } from '../../lib/stock';
 import { money, moneyShort, fmtDate, today, dayKey, sum, downloadCSV } from '../../lib/format';
+import { appName } from '../../lib/brand';
 
 const PERIODS = [{ value: 30, label: '30 days' }, { value: 60, label: '60 days' }, { value: 90, label: '90 days' }];
 
@@ -114,7 +115,7 @@ export default function Finance() {
           { name: 'date', label: 'Date', type: 'date', required: true },
           { name: 'category', label: 'Category', type: 'select', options: EXPENSE_CATEGORIES, required: true },
           { name: 'farmId', label: 'Farm', type: 'select', options: farms.map((f) => ({ value: f.id, label: f.name })), placeholder: 'Shared / all farms' },
-          { name: 'paidFrom', label: 'Paid from', type: 'select', required: true, options: [{ value: 'cash', label: 'Cash on hand' }, { value: 'wallet', label: 'PoultryPro wallet' }, { value: 'bank', label: 'Bank / other' }] },
+          { name: 'paidFrom', label: 'Paid from', type: 'select', required: true, options: [{ value: 'cash', label: 'Cash on hand' }, { value: 'wallet', label: `${appName()} wallet` }, { value: 'bank', label: 'Bank / other' }] },
         ]}
         onSubmit={(v) => {
           try {

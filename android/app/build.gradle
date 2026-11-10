@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.poultrypro.app"
+    namespace "com.nkukofie.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.poultrypro.app"
+        applicationId "com.nkukofie.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // CI passes the build number so every APK can install over the previous one.

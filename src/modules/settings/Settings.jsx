@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react';
-import { Save, Download, Upload, RotateCcw, Plus, Trash2, Building2, ShoppingBasket, Bell, Wallet, Syringe, Database, MessageSquare, History } from 'lucide-react';
+import { ImagePlus, Loader2, Save, Download, Upload, RotateCcw, Plus, Trash2, Building2, ShoppingBasket, Bell, Wallet, Syringe, Database, MessageSquare, History } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { PageHeader, Button, Card, CardHeader, Field, Input, Select, Tabs, DataTable, Badge, IconButton, confirmDialog, toast, cx } from '../../components/ui';
 import { DAYS } from '../../lib/tasks';
 import { LIVE } from '../../config';
+import { useCurrentUser } from '../../data/selectors';
+import { useBrand, setFarmBrand, logoFromFile, appName } from '../../lib/brand';
+import { setBusinessLogo } from '../../lib/accounts';
 import { fmtDate, fmtDateTime, today } from '../../lib/format';
 
 function Section({ title, icon, children, onSave }) {
@@ -47,6 +50,54 @@ function Templates() {
   );
 }
 
+/** The farm business's own logo: shown in the farm app, the customer shop and on receipts. */
+function FarmLogoCard() {
+  const db = useDB();
+  const brand = useBrand();
+  const user = useCurrentUser();
+  const current = LIVE ? brand.farmLogo : db.settings.farmLogo;
+  const [busy, setBusy] = useState(false);
+  const file = useRef();
+  const apply = async (logo) => {
+    setBusy(true);
+    try {
+      if (LIVE) {
+        await setBusinessLogo(logo);
+        setFarmBrand(brand.farmName, logo);
+      } else db.setSettings({ farmLogo: logo });
+      toast.success(logo ? 'Farm logo saved' : 'Farm logo removed', 'Shown in your farm app, customer shop and receipts');
+    } catch (e) {
+      toast.error('Not saved', e.message);
+    }
+    setBusy(false);
+  };
+  const pick = async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      await apply(await logoFromFile(f));
+    } catch (err) {
+      toast.error('Logo not used', err.message);
+    }
+  };
+  if (LIVE && user?.role !== 'owner') return null;
+  return (
+    <Card>
+      <CardHeader title="Farm logo" subtitle="Your customers see it in their shop and on receipts" icon={ImagePlus} />
+      <div className="flex flex-wrap items-center gap-4 p-5">
+        <div className="flex items-center gap-3 rounded-2xl bg-cream-100 p-3 pr-5 dark:bg-white/5">
+          {current ? <img src={current} alt="" className="h-16 w-16 rounded-xl object-contain" /> : <div className="flex h-16 w-16 items-center justify-center rounded-xl border-2 border-dashed border-cream-300 text-slate-400 dark:border-white/20"><ImagePlus className="h-6 w-6" /></div>}
+          <div><p className="font-semibold">{LIVE ? brand.farmName : db.settings.businessName}</p><p className="text-xs text-slate-500">{current ? 'Your logo' : 'No logo yet — the app logo is used'}</p></div>
+        </div>
+        <Button icon={busy ? Loader2 : ImagePlus} disabled={busy} onClick={() => file.current.click()}>{current ? 'Change logo' : 'Upload logo'}</Button>
+        {current && <Button variant="ghost" icon={Trash2} disabled={busy} onClick={() => apply(null)}>Remove</Button>}
+        <input ref={file} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pick} />
+      </div>
+    </Card>
+  );
+}
+
 export default function Settings() {
   const db = useDB();
   const [s, setS] = useState(db.settings);
@@ -65,7 +116,7 @@ export default function Settings() {
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `poultrypro-backup-${today()}.json`;
+    a.download = `nkukofie-backup-${today()}.json`;
     a.click();
     toast.success('Backup downloaded', 'Keep it somewhere safe');
   };
@@ -75,7 +126,7 @@ export default function Settings() {
     f.text().then(async (txt) => {
       try {
         const data = JSON.parse(txt);
-        if (!data.farms || !data.flocks) throw new Error('Not a PoultryPro backup');
+        if (!data.farms || !data.flocks) throw new Error(`Not a ${appName()} backup`);
         if (!(await confirmDialog('Restore this backup?', 'Everything currently in the app will be replaced.', { confirmLabel: 'Restore' }))) return;
         db.importData(data);
         setS(useDB.getState().settings);
@@ -94,6 +145,7 @@ export default function Settings() {
       <Tabs className="mb-5" value={tab} onChange={setTab} tabs={[{ value: 'general', label: 'General' }, { value: 'health', label: 'Vaccination schedules' }, { value: 'data', label: 'Data & logs' }]} />
       {tab === 'general' && (
         <div className="grid gap-6 xl:grid-cols-2">
+          <div className="xl:col-span-2"><FarmLogoCard /></div>
           <Section title="Business" icon={Building2} onSave={save}>
             <Field label="Business name" className="sm:col-span-2"><Input value={s.businessName} onChange={(e) => set('businessName', e.target.value)} /></Field>
             <Field label="Phone"><Input value={s.phone} onChange={(e) => set('phone', e.target.value)} /></Field>

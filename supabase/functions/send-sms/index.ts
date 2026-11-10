@@ -1,4 +1,4 @@
-// PoultryPro SMS via mNotify. The API key stays here on the server (Supabase secrets), never in the apps.
+// Nkukɔ Fie Pro SMS via mNotify. The API key stays here on the server (Supabase secrets), never in the apps.
 // The caller must be a signed-in, active account; customers may only text their own phone number.
 // Every message is logged in public.sms_log and each farm business has a daily limit.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
@@ -61,7 +61,8 @@ Deno.serve(async (req) => {
     return reply({ ok: r.ok, balance: r.json.balance ?? null, bonus: r.json.bonus ?? null, raw: r.json });
   }
 
-  const message = String(body.message ?? '').trim().slice(0, 459);
+  // Plain letters keep each SMS in the cheap GSM encoding (ɔ/ɛ would make mNotify charge double).
+  const message = String(body.message ?? '').replace(/ɔ/g, 'o').replace(/Ɔ/g, 'O').replace(/ɛ/g, 'e').replace(/Ɛ/g, 'E').trim().slice(0, 459);
   const recipients = [...new Set((Array.isArray(body.to) ? body.to : [body.to ?? '']).map(normPhone).filter(Boolean) as string[])].slice(0, 50);
   if (!message || !recipients.length) return reply({ ok: false, error: 'Phone number and message are required' }, 400);
   // Customers can only send receipts/notices to themselves (stops anyone using the farm's SMS credit).

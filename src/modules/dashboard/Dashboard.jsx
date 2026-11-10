@@ -146,7 +146,7 @@ function PickupsToday({ db, inScope }) {
             <Link key={o.id} to={`/app/orders/${o.id}`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-cream-100 dark:hover:bg-white/5">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-800 dark:text-white">{o.customerName}</p>
-                <p className="truncate text-xs text-slate-500">{o.lines.map((l) => `${l.qty} ${l.name.split(' —')[0]}`).join(', ')}</p>
+                <p className="truncate text-xs text-slate-500">{o.lines.map((l) => `${l.qty} ${String(l.name || 'Item').split(' —')[0]}`).join(', ')}</p>
               </div>
               <div className="text-right">
                 <Badge tone={o.pickupDate < today() ? 'red' : ORDER_STATUS[o.status].tone}>{o.pickupDate < today() ? 'Missed' : ORDER_STATUS[o.status].label}</Badge>

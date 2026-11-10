@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { create } from 'zustand';
 import { X, Search, ChevronLeft, ChevronRight, ArrowUpDown, CheckCircle2, AlertTriangle, Info, Inbox } from 'lucide-react';
 import { initials } from '../../lib/format';
+import { appName } from '../../lib/brand';
 
 export const cx = (...c) => c.filter(Boolean).join(' ');
 
@@ -585,7 +586,7 @@ export function Stepper({ value, onChange, step = 1, min = 0, className }) {
 }
 
 /** Prints one element in a clean window (receipts, payslips, statements). */
-export function printElement(id, title = 'PoultryPro') {
+export function printElement(id, title = appName()) {
   const el = document.getElementById(id);
   if (!el) return;
   const css = [...document.querySelectorAll('link[rel="stylesheet"], style')].map((n) => n.outerHTML).join('');

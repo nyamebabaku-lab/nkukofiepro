@@ -16,8 +16,8 @@ export default function LiveRoot({ children }) {
       boot();
     }
     const denied = () => toast.error('Not allowed', 'Your account cannot change that. Ask the farm owner.');
-    window.addEventListener('poultrypro-sync-denied', denied);
-    return () => window.removeEventListener('poultrypro-sync-denied', denied);
+    window.addEventListener('nkukofie-sync-denied', denied);
+    return () => window.removeEventListener('nkukofie-sync-denied', denied);
   }, []);
   let body;
   if (phase === 'boot' || phase === 'loading') body = <Splash />;

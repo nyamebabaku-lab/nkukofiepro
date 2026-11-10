@@ -24,7 +24,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Builds PoultryPro (/), PoultryPro Admin (/admin/) and the demo (/demo/).
+      # Builds Nkukɔ Fie Pro (/, customers), Farm (/farm/), Admin (/admin/) and the demo (/demo/).
       - run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
