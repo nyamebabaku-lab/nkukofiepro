@@ -22,21 +22,21 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'logo.png', 'apple-touch-icon.png'],
       manifest: {
         id: `nkukofie-${APP}`,
         name: META.name,
         short_name: META.short,
         description: META.desc,
         theme_color: '#1f3d2b',
-        background_color: '#f6f1e7',
+        background_color: '#ffffff',
         display: 'standalone',
         start_url: './',
         scope: './',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

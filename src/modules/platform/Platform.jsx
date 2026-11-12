@@ -151,7 +151,7 @@ function BrandingTab({ settings, reload }) {
             <div className="flex flex-wrap items-center gap-3">
               <BrandMark src={logo} className="h-16 w-16" />
               <Button variant="secondary" icon={ImagePlus} onClick={() => file.current.click()}>{logo ? 'Change logo' : 'Upload logo'}</Button>
-              {logo && <Button variant="ghost" icon={RotateCcw} onClick={() => setLogo(null)}>Use the egg mark</Button>}
+              {logo && <Button variant="ghost" icon={RotateCcw} onClick={() => setLogo(null)}>Use the default logo</Button>}
               <input ref={file} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pick} />
             </div>
             <p className="mt-2 text-xs text-slate-500">A square PNG with a transparent background looks best. It is resized to 256 × 256.</p>

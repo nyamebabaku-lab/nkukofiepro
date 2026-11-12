@@ -8,3 +8,4 @@ supabase/functions/.env
 supabase/.temp/
 *.swp
 *.swo
+brand/.splash.html
