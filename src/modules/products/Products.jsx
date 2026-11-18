@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus, Pencil, PackagePlus, Eye, EyeOff, ImagePlus, Trash2 } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { useFarmScope, useMyFarms } from '../../data/selectors';
@@ -6,11 +6,12 @@ import { PageHeader, Button, Card, Badge, Segmented, FormModal, Modal, Field, In
 import ProductArt, { ART_OPTIONS } from '../../components/ProductArt';
 import { PRODUCT_CATEGORIES, UNITS, EGG_SIZES, productStock, categoryLabel } from '../../lib/stock';
 import { SPECIES, PURPOSES } from '../../lib/standards';
-import { usePhoto, savePhoto, resizeImage } from '../../data/photos';
+import { usePhoto, savePhoto, sharePhoto, resizeImage } from '../../data/photos';
+import { LIVE } from '../../config';
 import { money, num, today } from '../../lib/format';
 
 function Thumb({ p, className }) {
-  const photo = usePhoto(p.hasPhoto ? `product:${p.id}` : null);
+  const photo = usePhoto(p.hasPhoto ? `product:${p.id}` : null, p.photoV);
   return <ProductArt art={p.art} photo={photo} className={className} />;
 }
 
@@ -20,24 +21,40 @@ function PhotoPicker({ product }) {
     const f = e.target.files?.[0];
     if (!f) return;
     const url = await resizeImage(f);
-    await savePhoto(`product:${product.id}`, url);
-    useDB.getState().update('products', product.id, { hasPhoto: true });
-    toast.success('Photo saved');
+    const r = await savePhoto(`product:${product.id}`, url);
+    useDB.getState().update('products', product.id, { hasPhoto: true, photoV: r.v, photoShared: r.shared });
+    if (LIVE && !r.shared) toast.error('Photo kept on this phone only', 'It could not be uploaded (check the internet). It will upload the next time you open Products.');
+    else toast.success('Photo saved', LIVE ? 'Customers and your team will see it.' : undefined);
   };
   return (
     <div className="flex items-center gap-3">
       <Thumb p={product} className="h-20 w-20" />
       <div className="flex flex-col gap-1.5">
         <Button size="sm" variant="secondary" icon={ImagePlus} onClick={() => ref.current.click()}>{product.hasPhoto ? 'Change photo' : 'Upload photo'}</Button>
-        {product.hasPhoto && <Button size="sm" variant="ghost" icon={Trash2} onClick={async () => { await savePhoto(`product:${product.id}`, null); useDB.getState().update('products', product.id, { hasPhoto: false }); }}>Use illustration</Button>}
+        {product.hasPhoto && <Button size="sm" variant="ghost" icon={Trash2} onClick={async () => { await savePhoto(`product:${product.id}`, null); useDB.getState().update('products', product.id, { hasPhoto: false, photoV: null, photoShared: false }); }}>Use illustration</Button>}
       </div>
       <input ref={ref} type="file" accept="image/*" className="hidden" onChange={pick} />
     </div>
   );
 }
 
+/** Uploads product photos that so far live only on this phone, so everyone sees them. */
+const sharing = new Set();
+function useSharePhotos(products) {
+  useEffect(() => {
+    if (!LIVE) return;
+    products.filter((p) => p.hasPhoto && !p.photoShared && !sharing.has(p.id)).forEach(async (p) => {
+      sharing.add(p.id);
+      const v = await sharePhoto(`product:${p.id}`, p.photoV).catch(() => null);
+      if (v) useDB.getState().update('products', p.id, { photoV: v, photoShared: true });
+      sharing.delete(p.id);
+    });
+  }, [products]);
+}
+
 export default function Products() {
   const db = useDB();
+  useSharePhotos(db.products);
   const scope = useFarmScope();
   const farms = useMyFarms();
   const [cat, setCat] = useState('all');

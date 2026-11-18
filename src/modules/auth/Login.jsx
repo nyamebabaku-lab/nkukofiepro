@@ -69,9 +69,14 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="flex flex-col justify-center px-5 py-10 sm:px-12">
+      {/* Phones: the same farm picture as a banner above the form */}
+      <div className="relative flex h-60 flex-col overflow-hidden bg-brand-900 px-5 pb-5 pt-[max(1.25rem,env(safe-area-inset-top))] text-white sm:h-72 sm:px-12 lg:hidden">
+        <HeroPhoto focus="60% 30%" fade="up" />
+        <div className="relative"><Logo dark /></div>
+        <p className="relative mt-auto inline-flex self-start rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-gold-300 ring-1 ring-white/10 backdrop-blur">Layers · Broilers · Hatchery · Turkeys · Guinea fowl · Ducks</p>
+      </div>
+      <div className="flex flex-col justify-center px-5 py-8 sm:px-12 lg:py-10">
         <div className="mx-auto w-full max-w-md">
-          <div className="mb-8 lg:hidden"><Logo /></div>
           <h2 className="font-display text-3xl font-semibold tracking-tight text-brand-900 dark:text-white">Sign in</h2>
           <p className="mt-1 text-sm text-slate-500">Staff go to the farm dashboard. Customers go to their orders and balance.</p>
 

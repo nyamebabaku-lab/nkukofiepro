@@ -1,3 +1,4 @@
+import { useState } from 'react';
 // Flat illustrations for products (used when no photo is uploaded).
 import { cx } from './ui';
 import { usePhoto } from '../data/photos';
@@ -188,7 +189,9 @@ const ART = {
 };
 
 export default function ProductArt({ art = 'crate', photo, className, rounded = 'rounded-2xl' }) {
-  if (photo) return <img src={photo} alt="" className={cx('h-full w-full object-cover', rounded, className)} />;
+  const [broken, setBroken] = useState(null);
+  // a shared photo that can't load (offline, or not uploaded yet) falls back to the drawing
+  if (photo && broken !== photo) return <img src={photo} alt="" loading="lazy" onError={() => setBroken(photo)} className={cx('h-full w-full object-cover', rounded, className)} />;
   const Draw = ART[art] || ART.crate;
   return (
     <div className={cx('flex items-center justify-center bg-gradient-to-br', BG[art] || BG.crate, rounded, className)}>
@@ -203,6 +206,6 @@ export const ART_OPTIONS = Object.keys(ART);
 
 /** Product picture: uploaded photo if there is one, otherwise the illustration. */
 export function ProductImage({ p, className, rounded }) {
-  const photo = usePhoto(p.hasPhoto ? `product:${p.id}` : null);
+  const photo = usePhoto(p.hasPhoto ? `product:${p.id}` : null, p.photoV);
   return <ProductArt art={p.art} photo={photo} className={className} rounded={rounded} />;
 }
