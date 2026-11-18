@@ -2,7 +2,7 @@ import { MODE } from '../config';
 import {
   UserCheck,
   LayoutDashboard, ClipboardPen, Warehouse, Bird, Syringe, Egg, Package, ShoppingBag, Store, CalendarClock, Users, Tags,
-  LineChart, Wallet, Banknote, UserCog, ListChecks, Clock, Wrench, BarChart3, Settings, Bell,
+  LineChart, Wallet, Banknote, UserCog, ListChecks, Clock, Wrench, BarChart3, Settings, Bell, BookOpen,
 } from 'lucide-react';
 
 export const ROLES = {
@@ -19,6 +19,7 @@ export const NAV = [
   { group: 'Farm', items: [
     { key: 'farms', label: 'Farms & pens', path: '/app/farms', icon: Warehouse },
     { key: 'flocks', label: 'Flocks', path: '/app/flocks', icon: Bird },
+    { key: 'guide', label: 'Care guide & feed plan', path: '/app/guide', icon: BookOpen },
     { key: 'health', label: 'Health & vaccines', path: '/app/health', icon: Syringe },
     { key: 'hatchery', label: 'Hatchery', path: '/app/hatchery', icon: Egg },
     { key: 'inventory', label: 'Inventory', path: '/app/inventory', icon: Package },
@@ -51,8 +52,8 @@ export const EXTRA = [{ key: 'notifications', label: 'Notifications', path: '/ap
 
 const ACCESS = {
   owner: '*',
-  manager: ['dashboard', 'log', 'farms', 'flocks', 'health', 'hatchery', 'inventory', 'orders', 'pos', 'pickups', 'customers', 'products', 'staff', 'tasks', 'attendance', 'maintenance', 'reports', 'notifications'],
-  worker: ['dashboard', 'log', 'flocks', 'health', 'hatchery', 'pickups', 'tasks', 'attendance', 'notifications'],
+  manager: ['dashboard', 'log', 'farms', 'flocks', 'guide', 'health', 'hatchery', 'inventory', 'orders', 'pos', 'pickups', 'customers', 'products', 'staff', 'tasks', 'attendance', 'maintenance', 'reports', 'notifications'],
+  worker: ['dashboard', 'log', 'flocks', 'guide', 'health', 'hatchery', 'pickups', 'tasks', 'attendance', 'notifications'],
 };
 export const can = (role, key) => ACCESS[role] === '*' || (ACCESS[role] || []).includes(key);
 

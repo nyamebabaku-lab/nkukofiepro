@@ -3,6 +3,7 @@
 import { addDays, format, parseISO } from 'date-fns';
 import { stdFeed, stdLayPct, stdWeight, feedFor, isLayingType } from '../lib/standards';
 import { DEFAULT_TEMPLATES, scheduleFor } from '../lib/vaccines';
+import { programmeFor, programmeTasks } from '../lib/programmes';
 
 const WINDOW = 60;
 
@@ -44,6 +45,7 @@ export const defaultSettings = () => ({
   feedBagKg: 50,
   allowCashBooking: true,
   cashHoldHours: 24,
+  reminders: { smsUrgent: true, graceMin: 60, vaccineCheck: '14:00', morning: '06:30', evening: '19:00', toManagers: false, maxSmsDay: 20 },
 });
 
 /** An empty business: no farms, flocks or people yet. */
@@ -568,11 +570,23 @@ export function buildSeed() {
     { id: id('tsk'), farmId: 'frm_ejisu', penId: null, title: 'Generator test run', assigneeId: 'usr_kwabena', time: '16:00', category: 'maintenance', repeat: 'weekly', days: [5], active: true, createdAt: T(-90) },
     { id: id('tsk'), farmId: 'frm_kasoa', penId: null, title: 'Disinfect equipment', assigneeId: 'usr_efua', time: '15:00', category: 'cleaning', repeat: 'weekly', days: [3], active: true, createdAt: T(-90) },
   );
+  // Care programmes installed on two young flocks (broilers at Ejisu, pullets at Dodowa)
+  [['flk_b2611', 'usr_ibrahim'], ['flk_p2601', 'usr_kojo']].forEach(([fid, who]) => {
+    const f = flocks.find((x) => x.id === fid);
+    f.programme = programmeFor(f).id;
+    programmeTasks(programmeFor(f), f, { assigneeId: who, from: D(-13) }).forEach((t) => tasks.push({ ...t, id: id('tsk'), createdAt: T(-13) }));
+  });
   const taskRuns = [];
   for (let day = -13; day <= 0; day++) {
     const dow = addDays(now, day).getDay();
     for (const t of tasks) {
       if (t.repeat === 'weekly' && !t.days.includes(dow)) continue;
+      if (t.repeat === 'once' && t.date !== D(day)) continue;
+      if (t.flockId) {
+        const f = flocks.find((x) => x.id === t.flockId);
+        const age = Math.round((parseISO(D(day)) - parseISO(f.hatchDate)) / 86400000);
+        if ((t.fromDay != null && age < t.fromDay) || (t.toDay != null && age > t.toDay)) continue;
+      }
       if (day === 0 && t.time > '11:00') continue;
       if (day < 0 && R() < 0.07) continue;
       const [h, m] = t.time.split(':').map(Number);

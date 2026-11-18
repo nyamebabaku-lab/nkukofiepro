@@ -42,6 +42,7 @@ const Maintenance = lazy(() => import('../modules/staff/Maintenance'));
 const Reports = lazy(() => import('../modules/reports/Reports'));
 const Settings = lazy(() => import('../modules/settings/Settings'));
 const Notifications = lazy(() => import('../modules/notifications/Notifications'));
+const Guide = lazy(() => import('../modules/guide/Guide'));
 
 function Loading() {
   return (
@@ -98,7 +99,7 @@ export default function DemoApp() {
               ['hatchery', 'hatchery', Hatchery], ['inventory', 'inventory', Inventory], ['orders', 'orders', Orders], ['orders/:id', 'orders', OrderDetail], ['pos', 'pos', POS],
               ['pickups', 'pickups', Pickups], ['customers', 'customers', Customers], ['customers/:id', 'customers', CustomerDetail], ['products', 'products', Products],
               ['finance', 'finance', Finance], ['wallet', 'wallet', Wallet], ['payroll', 'payroll', Payroll], ['staff', 'staff', Staff], ['tasks', 'tasks', Tasks],
-              ['attendance', 'attendance', Attendance], ['maintenance', 'maintenance', Maintenance], ['reports', 'reports', Reports], ['settings', 'settings', Settings], ['notifications', 'notifications', Notifications],
+              ['attendance', 'attendance', Attendance], ['maintenance', 'maintenance', Maintenance], ['reports', 'reports', Reports], ['settings', 'settings', Settings], ['notifications', 'notifications', Notifications], ['guide', 'guide', Guide],
             ].map(([path, k, El]) => (
               <Route key={path} path={path} element={<Suspense fallback={<Loading />}>{page(k, El)}</Suspense>} />
             ))}

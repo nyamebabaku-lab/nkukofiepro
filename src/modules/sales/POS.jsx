@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Minus, Plus, ShoppingCart, Trash2, AlertTriangle, X } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { useFarmScope, useMyFarms } from '../../data/selectors';
-import { PageHeader, Button, Card, Segmented, SearchInput, Field, Input, Select, toast, cx } from '../../components/ui';
+import { PageHeader, Button, Card, Segmented, SearchInput, Field, Input, Select, toast, confirmDialog, cx } from '../../components/ui';
 import { ProductImage } from '../../components/ProductArt';
 import PayModal from '../../components/PayModal';
 import { PRODUCT_CATEGORIES, productStock } from '../../lib/stock';
@@ -60,15 +60,19 @@ export default function POS() {
       toast.error('Could not save', e.message);
     }
   };
-  const start = () => {
+  // "do not sell" lock: staff must confirm the products are not from a flock in its withdrawal period
+  const withdrawalOk = async () => !warns.length || confirmDialog('Drug withdrawal period active', `${warns.join(' ')} Only continue if these products are NOT from the treated flock.`, { confirmLabel: 'Not from treated flock — continue' });
+  const start = async () => {
     const err = validate();
     if (err) return toast.error(err);
+    if (!(await withdrawalOk())) return null;
     setPaying(true);
     return null;
   };
-  const saveUnpaid = () => {
+  const saveUnpaid = async () => {
     const err = validate();
     if (err) return toast.error(err);
+    if (!(await withdrawalOk())) return null;
     if (!customer) return toast.error('Choose a registered customer', 'Only known customers can take goods on credit or book without paying');
     finish(null);
     return null;

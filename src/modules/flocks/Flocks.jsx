@@ -25,17 +25,19 @@ export function NewFlockModal({ open, onClose, initial }) {
     { name: 'ageAtPlacement', label: 'Age when placed (days)', type: 'number', hint: '0 for day-old chicks, 112 for point-of-lay' },
     { name: 'costPerBird', label: 'Cost per bird (GH₵)', type: 'number', step: '0.01' },
     { name: 'source', label: 'Supplier / source', span: 2 },
+    { name: 'install', label: 'Install the care programme (daily tasks, feed changes, reminders and guide from day one to sale)', type: 'checkbox', span: 2 },
+    { name: 'careAssigneeId', label: 'Send the daily tasks to', type: 'select', hidden: (v) => !v.install, placeholder: 'Whole farm team', options: (v) => db.users.filter((u) => u.role !== 'owner' && u.status !== 'inactive' && (u.farmIds || []).includes(v.farmId)).map((u) => ({ value: u.id, label: u.name })) },
   ];
   const init = useMemo(() => {
     const farmId = farms[0]?.id;
-    return { farmId, species: 'chicken', purpose: 'broiler', placedAt: today(), ageAtPlacement: 0, code: nextFlockCode(db, 'broiler', 'chicken'), ...initial };
+    return { farmId, species: 'chicken', purpose: 'broiler', placedAt: today(), ageAtPlacement: 0, code: nextFlockCode(db, 'broiler', 'chicken'), install: true, ...initial };
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <FormModal
       open={open}
       onClose={onClose}
       title="Place a new flock"
-      subtitle="A vaccination schedule is created automatically"
+      subtitle="The vaccination schedule and care programme are created automatically"
       fields={fields}
       initial={init}
       submitLabel="Create flock"
@@ -43,8 +45,8 @@ export function NewFlockModal({ open, onClose, initial }) {
         const pen = db.pens.find((p) => p.id === v.penId);
         if (!pen || pen.farmId !== v.farmId) return toast.error('Choose a pen on that farm');
         if (db.flocks.some((f) => f.code === v.code)) return toast.error('That flock code is already used');
-        const { flock, vaccines } = addFlock(v);
-        toast.success(`Flock ${flock.code} created`, `${vaccines} vaccinations scheduled`);
+        const { flock, vaccines, tasks } = addFlock(v);
+        toast.success(`Flock ${flock.code} created`, `${vaccines} vaccinations${tasks ? ` and ${tasks} care tasks` : ''} scheduled`);
         onClose();
         navigate(`/app/flocks/${flock.id}`);
         return null;

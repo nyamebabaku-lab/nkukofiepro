@@ -11,13 +11,14 @@ import { isLayingType, isMeatType, speciesLabel, purposeLabel } from '../../lib/
 import { num, money, fmtDate, sum, today } from '../../lib/format';
 import { vaccineState } from '../../lib/vaccines';
 import { markVaccineDone, closeFlock } from '../../lib/health';
+import CarePlan from './CarePlan';
 
 export default function FlockDetail() {
   const { id } = useParams();
   const db = useDB();
   const user = useCurrentUser();
   const show = useQuickLog((s) => s.show);
-  const [tab, setTab] = useState('overview');
+  const [tab, setTab] = useState('care');
   const [range, setRange] = useState(30);
   const f = db.flocks.find((x) => x.id === id);
   const daily = useMemo(() => (f ? flockDaily(db, f, range) : []), [db, f, range]);
@@ -77,8 +78,9 @@ export default function FlockDetail() {
         <StatCard label="Feed per bird" value={`${s.feedPerBird7} g/day`} icon={Wheat} tone="teal" sub={`Guide ${s.stdFeedNow} g · ${num(s.feedKg)} kg so far`} />
       </div>
 
-      <Tabs className="mb-4" tabs={[{ value: 'overview', label: 'Performance' }, { value: 'records', label: 'Records', count: records.length }, { value: 'health', label: 'Health', count: vaccines.filter((v) => v.status === 'due').length }, { value: 'costs', label: 'Costs' }]} value={tab} onChange={setTab} />
+      <Tabs className="mb-4" tabs={[{ value: 'care', label: 'Care plan' }, { value: 'overview', label: 'Performance' }, { value: 'records', label: 'Records', count: records.length }, { value: 'health', label: 'Health', count: vaccines.filter((v) => v.status === 'due').length }, { value: 'costs', label: 'Costs' }]} value={tab} onChange={setTab} />
 
+      {tab === 'care' && <CarePlan f={f} totalCost={totalCost} />}
       {tab === 'overview' && (
         <div className="grid gap-6 xl:grid-cols-2">
           {laying && (

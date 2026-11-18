@@ -3,6 +3,7 @@ import { addDays, format, parseISO } from 'date-fns';
 import { useDB, useSession } from '../data/store';
 import { today, num, fmtDate } from './format';
 import { scheduleFor } from './vaccines';
+import { installProgramme, removeProgramme } from './tasks';
 
 const me = () => useSession.getState().userId;
 const ITEM_FOR = (name, kind) =>
@@ -36,7 +37,8 @@ export function addTreatment(t) {
 }
 
 /** New flock: saves it, books the chick/bird cost and creates its vaccination schedule. */
-export function addFlock(data) {
+export function addFlock(input) {
+  const { install = false, careAssigneeId = null, ...data } = input;
   const db = useDB.getState();
   const ageAtPlacement = +data.ageAtPlacement || 0;
   const hatchDate = format(addDays(parseISO(data.placedAt), -ageAtPlacement), 'yyyy-MM-dd');
@@ -45,12 +47,14 @@ export function addFlock(data) {
   db.addMany('vaccinations', sched);
   if (f.costPerBird > 0) db.add('expenses', { farmId: f.farmId, date: f.placedAt, category: 'birds', amount: f.opening * f.costPerBird, description: `${num(f.opening)} birds for flock ${f.code}`, paidFrom: 'bank', flockId: f.id });
   db.log('Flock placed', `${f.code} · ${num(f.opening)} ${f.breed}`, { farmId: f.farmId });
-  return { flock: f, vaccines: sched.length };
+  const tasks = install ? installProgramme(f, { assigneeId: careAssigneeId || null }) : 0;
+  return { flock: f, vaccines: sched.length, tasks };
 }
 
 export function closeFlock(id, { reason = 'Sold out', date = today() } = {}) {
   const db = useDB.getState();
   db.update('flocks', id, { status: 'closed', closedAt: date, closeReason: reason });
+  removeProgramme(id);
   useDB.setState((s) => ({ vaccinations: s.vaccinations.map((v) => (v.flockId === id && v.status === 'due' ? { ...v, status: 'skipped', note: 'Flock closed' } : v)) }));
   db.log('Flock closed', `${db.flocks.find((f) => f.id === id)?.code} · ${reason}`);
 }

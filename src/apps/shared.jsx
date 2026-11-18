@@ -29,6 +29,7 @@ export const pages = {
   Maintenance: lazy(() => import('../modules/staff/Maintenance')),
   Reports: lazy(() => import('../modules/reports/Reports')),
   Notifications: lazy(() => import('../modules/notifications/Notifications')),
+  Guide: lazy(() => import('../modules/guide/Guide')),
 };
 
 /** Staff pages every live app may include: [path, permission key, component]. */
@@ -38,6 +39,7 @@ export const STAFF_ROUTES = [
   ['orders/:id', 'orders', pages.OrderDetail], ['pos', 'pos', pages.POS], ['pickups', 'pickups', pages.Pickups], ['customers', 'customers', pages.Customers],
   ['customers/:id', 'customers', pages.CustomerDetail], ['products', 'products', pages.Products], ['staff', 'staff', pages.Staff], ['tasks', 'tasks', pages.Tasks],
   ['attendance', 'attendance', pages.Attendance], ['maintenance', 'maintenance', pages.Maintenance], ['reports', 'reports', pages.Reports], ['notifications', 'notifications', pages.Notifications],
+  ['guide', 'guide', pages.Guide],
 ];
 
 export function Loading() {

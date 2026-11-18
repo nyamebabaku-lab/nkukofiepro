@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { KeyRound, Eye, Menu, X, Bell, Moon, Sun, LogOut, ChevronsLeft, ChevronsRight, Search, Plus, Store, ChevronDown, MapPin, WifiOff, Download, Check, MoreHorizontal } from 'lucide-react';
 import { useDB, useSession } from '../../data/store';
 import { useCurrentUser, useMyFarms, useFarmScope, notificationsFor } from '../../data/selectors';
+import { useReminders } from '../../lib/reminders';
 import { navFor, navItem, MOBILE_TABS, ROLES } from '../../lib/nav';
 import { useOnline, useInstall, isIOS } from '../../data/offline';
 import { isNative, APK_URL } from '../../data/native';
@@ -209,6 +210,7 @@ export default function AppShell() {
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, []);
+  useReminders(user);
 
   if (!user) return null;
   const unread = notificationsFor(user, null, notifications).filter((n) => !n.read).length;

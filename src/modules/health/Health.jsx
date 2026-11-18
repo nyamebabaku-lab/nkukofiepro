@@ -8,6 +8,8 @@ import { PageHeader, Button, Tabs, Badge, Card, CardHeader, DataTable, FormModal
 import { vaccineState } from '../../lib/vaccines';
 import { markVaccineDone, skipVaccine, addTreatment } from '../../lib/health';
 import { fmtDate, today, dayKey } from '../../lib/format';
+import { DRUGS, drugByName, withdrawalFor } from '../../lib/drugs';
+import { isLayingType } from '../../lib/standards';
 
 const ST_TONE = { done: 'green', overdue: 'red', due: 'amber', skipped: 'slate' };
 
@@ -66,6 +68,18 @@ function Calendar({ list, onPick }) {
         })}
       </div>
     </Card>
+  );
+}
+
+function DrugInput({ value, onChange, laying }) {
+  const d = drugByName(value);
+  const wd = withdrawalFor(d, laying);
+  return (
+    <div>
+      <input className="input" list="drug-list" value={value || ''} placeholder="e.g. Oxytetracycline 20%" onChange={(e) => onChange(e.target.value)} />
+      <datalist id="drug-list">{DRUGS.map((x) => <option key={x.name} value={x.name}>{x.use}</option>)}</datalist>
+      {d && <p className="mt-1 text-xs text-slate-500">{d.use} · typical withdrawal: <b>{wd} days</b> {laying ? '(eggs)' : '(meat)'}{laying && d.eggs == null ? ' — not for hens laying eggs for sale' : ''}</p>}
+    </div>
   );
 }
 
@@ -159,21 +173,26 @@ export default function Health() {
         onClose={() => setTreating(false)}
         title="Record a treatment"
         subtitle="Drugs given in water/feed or by injection"
-        initial={{ date: today(), days: 5, withdrawalDays: 0 }}
+        initial={{ date: today(), days: 5, withdrawalDays: '' }}
         fields={[
           { name: 'flockId', label: 'Flock', type: 'select', required: true, options: db.flocks.filter((f) => f.status === 'active' && inScope(f.farmId)).map((f) => ({ value: f.id, label: `${f.code} · ${f.breed}` })) },
           { name: 'itemId', label: 'Drug from store', type: 'select', options: items.map((i) => ({ value: i.id, label: i.name })), placeholder: 'Not from store' },
-          { name: 'drug', label: 'Drug name', required: true, placeholder: 'e.g. Oxytetracycline 20%' },
+          { name: 'drug', label: 'Drug name', required: true, type: 'custom', render: (v, set) => <DrugInput value={v.drug} onChange={set} laying={isLayingType(db.flocks.find((f) => f.id === v.flockId) || {})} /> },
           { name: 'qty', label: 'Quantity used (sachets / vials)', type: 'number' },
           { name: 'date', label: 'Start date', type: 'date', required: true },
           { name: 'days', label: 'Number of days', type: 'number', required: true },
-          { name: 'withdrawalDays', label: 'Withdrawal period (days)', type: 'number', hint: 'From the drug label: days before eggs/meat can be sold' },
+          { name: 'withdrawalDays', label: 'Withdrawal period (days)', type: 'number', hint: 'Leave empty to use the typical value shown above — the drug label always wins' },
           { name: 'vet', label: 'Vet (optional)' },
           { name: 'reason', label: 'Signs / reason', type: 'textarea', required: true },
         ]}
         onSubmit={(v) => {
           const item = db.items.find((i) => i.id === v.itemId);
-          addTreatment({ ...v, drug: v.drug || item?.name });
+          const drugName = v.drug || item?.name;
+          const lib = drugByName(drugName);
+          const laying = isLayingType(db.flocks.find((f) => f.id === v.flockId) || {});
+          const wd = v.withdrawalDays === '' || v.withdrawalDays == null || (+v.withdrawalDays === 0 && lib) ? withdrawalFor(lib, laying) ?? 0 : +v.withdrawalDays;
+          addTreatment({ ...v, drug: drugName, withdrawalDays: wd });
+          v.withdrawalDays = wd;
           toast.success('Treatment recorded', +v.withdrawalDays > 0 ? 'Withdrawal warning is now active' : undefined);
           setTreating(false);
         }}

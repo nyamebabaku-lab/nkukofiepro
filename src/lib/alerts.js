@@ -4,6 +4,9 @@ import { activeFlocks, flockIndex, ageDays } from './flock';
 import { isLayingType } from './standards';
 import { lowStock, itemUsage } from './stock';
 import { vaccineState } from './vaccines';
+import { programmeFor, tempRangeAt } from './programmes';
+import { feedPlan, saleReadiness } from './feedplan';
+import { tasksFor } from './tasks';
 
 export function farmAlerts(db, inScope) {
   const t = today();
@@ -36,10 +39,27 @@ export function farmAlerts(db, inScope) {
     if (!lastEnv[e.penId] || `${e.date}${e.time}` > `${lastEnv[e.penId].date}${lastEnv[e.penId].time}`) lastEnv[e.penId] = e;
   });
   Object.values(lastEnv).forEach((e) => {
+    // brooding houses: compare with the age-based range of the youngest flock in that house
+    const young = flocks.filter((f) => f.penId === e.penId).map((f) => ({ f, r: tempRangeAt(programmeFor(f), ageDays(f)) })).find((x) => x.r);
+    if (young) {
+      const [lo, hi] = young.r;
+      if (e.temp < lo - 1 || e.temp > hi + 2) out.push({ level: 'critical', kind: 'env', title: `Brooder ${e.temp < lo ? 'too cold' : 'too hot'} · ${young.f.code}`, text: `${e.temp} °C — should be ${lo}–${hi} °C at day ${ageDays(young.f)}`, link: `/app/flocks/${young.f.id}` });
+      return;
+    }
     if (e.temp > db.settings.tempMax || e.temp < db.settings.tempMin) out.push({ level: 'critical', kind: 'env', title: `Temperature ${e.temp} °C · ${db.pens.find((p) => p.id === e.penId)?.name}`, text: `Safe range ${db.settings.tempMin}–${db.settings.tempMax} °C`, link: '/app/log' });
   });
   db.maintenance.filter((m) => inScope(m.farmId) && m.status === 'open').forEach((m) => out.push({ level: 'info', kind: 'maintenance', title: db.assets.find((a) => a.id === m.assetId)?.name || 'Repair', text: m.description, link: '/app/maintenance' }));
   db.assets.filter((a) => inScope(a.farmId) && a.nextService && a.nextService < t && !db.maintenance.some((m) => m.assetId === a.id && m.status === 'open')).forEach((a) => out.push({ level: 'warning', kind: 'maintenance', title: `Service overdue · ${a.name}`, text: `Was due ${fmtDate(a.nextService)}`, link: '/app/maintenance' }));
+  flocks.forEach((f) => {
+    const pl = feedPlan(db, f, 3);
+    if (pl?.nextChange && pl.nextChange.date <= dayKey(1)) out.push({ level: 'warning', kind: 'feed', title: `Feed change · ${f.code}`, text: `Start ${pl.nextChange.feed} ${pl.nextChange.date === t ? 'today' : 'tomorrow'} — mix with the old feed for 2–3 days`, link: `/app/flocks/${f.id}` });
+    const sr = ['broiler', 'cockerel', 'meat'].includes(f.purpose) || f.species !== 'chicken' ? saleReadiness(db, f) : null;
+    if (sr?.overdue) out.push({ level: 'warning', kind: 'sale', title: `Past best sale age · ${f.code}`, text: 'Feed per kg of meat rises from here — sell soon', link: `/app/flocks/${f.id}` });
+    else if (sr?.ready && !['layer', 'breeder'].includes(f.purpose)) out.push({ level: 'info', kind: 'sale', title: `Ready for sale · ${f.code}`, text: sr.weight ? `Average ${num(sr.weight)} g` : sr.label, link: `/app/flocks/${f.id}` });
+  });
+  const farmIds = db.farms.filter((fm) => inScope(fm.id)).map((fm) => fm.id);
+  const late = tasksFor(db, { farmIds }).filter((x) => x.important && x.overdue);
+  if (late.length) out.push({ level: 'warning', kind: 'tasks', title: `${late.length} urgent task${late.length === 1 ? '' : 's'} late`, text: late.slice(0, 2).map((x) => `${x.time} ${x.title}`).join(' · '), link: '/app/tasks' });
   const rank = { critical: 0, warning: 1, info: 2 };
   return out.sort((a, b) => rank[a.level] - rank[b.level]);
 }

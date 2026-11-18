@@ -1,5 +1,6 @@
 // Staff tasks, attendance and payroll.
-import { parseISO } from 'date-fns';
+import { parseISO, differenceInCalendarDays } from 'date-fns';
+import { programmeFor, programmeTasks } from './programmes';
 import { useDB, useSession } from '../data/store';
 import { today, nowISO, sum, round2, money } from './format';
 import { payout } from './payments';
@@ -19,24 +20,56 @@ export const TASK_CATEGORIES = [
 ];
 export const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const runsOn = (t, date) => {
+const runsOn = (t, date, db) => {
   if (!t.active) return false;
+  if (t.flockId && db) {
+    // programme tasks run only while the flock is active and inside the task's age window
+    const f = db.flocks.find((x) => x.id === t.flockId);
+    if (!f || (f.status !== 'active' && t.repeat !== 'once')) return false;
+    if (t.fromDay != null || t.toDay != null) {
+      const age = differenceInCalendarDays(parseISO(date), parseISO(f.hatchDate));
+      if ((t.fromDay != null && age < t.fromDay) || (t.toDay != null && age > t.toDay)) return false;
+    }
+  }
   if (t.repeat === 'once') return t.date === date;
   if (t.repeat === 'weekly') return (t.days || []).includes(parseISO(date).getDay());
   return true;
 };
 
+/** Is this task meant for this person? Unassigned tasks belong to everyone working on that farm. */
+export const isMine = (t, user) => t.assigneeId === user.id || (!t.assigneeId && user.role !== 'owner' && (user.farmIds || []).includes(t.farmId));
+
 /** Tasks for a day with done / overdue state. Filter by farm and/or user. */
-export function tasksFor(db, { date = today(), farmIds, userId } = {}) {
+export function tasksFor(db, { date = today(), farmIds, userId, user } = {}) {
   const now = new Date().toTimeString().slice(0, 5);
+  const me = user || (userId && db.users.find((u) => u.id === userId));
   return db.tasks
-    .filter((t) => runsOn(t, date) && (!farmIds || farmIds.includes(t.farmId)) && (!userId || t.assigneeId === userId))
+    .filter((t) => runsOn(t, date, db) && (!farmIds || farmIds.includes(t.farmId)) && (!userId || (me ? isMine(t, me) : t.assigneeId === userId)))
     .map((t) => {
       const run = db.taskRuns.find((r) => r.taskId === t.id && r.date === date);
       const overdue = !run && (date < today() || (date === today() && t.time < now));
       return { ...t, run, done: !!run, overdue };
     })
     .sort((a, b) => a.time.localeCompare(b.time));
+}
+
+/** Creates a flock's care programme tasks (routines + dated milestones). Returns how many. */
+export function installProgramme(flock, { assigneeId = null } = {}) {
+  const db = useDB.getState();
+  const p = programmeFor(flock);
+  if (!p) return 0;
+  removeProgramme(flock.id);
+  const list = programmeTasks(p, flock, { assigneeId });
+  db.addMany('tasks', list.map((t) => ({ ...t, createdAt: nowISO() })));
+  db.update('flocks', flock.id, { programme: p.id, programmeAt: today() });
+  db.log('Care programme installed', `${flock.code} · ${p.name} · ${list.length} tasks`, { farmId: flock.farmId });
+  return list.length;
+}
+
+/** Removes a flock's automatic programme tasks (keeps tasks people added by hand). */
+export function removeProgramme(flockId) {
+  const db = useDB.getState();
+  db.tasks.filter((t) => t.flockId === flockId && t.auto).forEach((t) => db.remove('tasks', t.id));
 }
 
 export function toggleTask(taskId, date = today(), note = '') {

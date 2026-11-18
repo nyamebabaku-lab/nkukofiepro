@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ImagePlus, Loader2, Save, Download, Upload, RotateCcw, Plus, Trash2, Building2, ShoppingBasket, Bell, Wallet, Syringe, Database, MessageSquare, History } from 'lucide-react';
+import { ImagePlus, Loader2, Save, Download, Upload, RotateCcw, Plus, Trash2, Building2, ShoppingBasket, Bell, Wallet, Syringe, Database, MessageSquare, History, BellRing, MessageSquareWarning, Sunrise } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { PageHeader, Button, Card, CardHeader, Field, Input, Select, Tabs, DataTable, Badge, IconButton, confirmDialog, toast, cx } from '../../components/ui';
 import { DAYS } from '../../lib/tasks';
@@ -142,7 +142,8 @@ export default function Settings() {
   return (
     <div>
       <PageHeader title="Settings" subtitle="Business details, shop rules, alerts, wallet and data" />
-      <Tabs className="mb-5" value={tab} onChange={setTab} tabs={[{ value: 'general', label: 'General' }, { value: 'health', label: 'Vaccination schedules' }, { value: 'data', label: 'Data & logs' }]} />
+      <Tabs className="mb-5" value={tab} onChange={setTab} tabs={[{ value: 'general', label: 'General' }, { value: 'reminders', label: 'Reminders & SMS' }, { value: 'health', label: 'Vaccination schedules' }, { value: 'data', label: 'Data & logs' }]} />
+      {tab === 'reminders' && <RemindersTab s={s} setS={setS} />}
       {tab === 'general' && (
         <div className="grid gap-6 xl:grid-cols-2">
           <div className="xl:col-span-2"><FarmLogoCard /></div>
@@ -214,6 +215,35 @@ export default function Settings() {
           />
         </div>
       )}
+    </div>
+  );
+}
+
+export const DEFAULT_REMINDERS = { smsUrgent: true, graceMin: 60, vaccineCheck: '14:00', morning: '06:30', evening: '19:00', toManagers: false, maxSmsDay: 20 };
+
+function RemindersTab({ s, setS }) {
+  const db = useDB();
+  const r = { ...DEFAULT_REMINDERS, ...(s.reminders || {}) };
+  const set = (k, v) => setS((x) => ({ ...x, reminders: { ...DEFAULT_REMINDERS, ...(x.reminders || {}), [k]: v } }));
+  const save = () => { db.setSettings({ ...db.settings, reminders: { ...r, graceMin: +r.graceMin || 60, maxSmsDay: +r.maxSmsDay || 20 } }); db.log('Settings changed', 'Reminders & SMS'); toast.success('Reminder settings saved'); };
+  const yesNo = [{ value: 'yes', label: 'On' }, { value: 'no', label: 'Off' }];
+  return (
+    <div className="grid gap-6 xl:grid-cols-2">
+      <Section title="Phone & in-app reminders" icon={BellRing} onSave={save}>
+        <p className="text-sm text-slate-600 sm:col-span-2 dark:text-slate-300">Every worker, manager and owner gets a phone notification at the time of each of their tasks and on the morning a vaccination is due. They work without internet and are free. Each person can turn them on or off, or choose “10 / 30 min before”, under <b>Tasks → My tasks</b>.</p>
+      </Section>
+      <Section title="SMS alerts (from the server)" icon={MessageSquareWarning} onSave={save}>
+        <Field label="Text the manager & owner when an urgent task is missed"><Select value={r.smsUrgent ? 'yes' : 'no'} onChange={(e) => set('smsUrgent', e.target.value === 'yes')} options={yesNo} /></Field>
+        <Field label="Minutes after the task time" hint="How late before the text is sent"><Input inputMode="numeric" value={r.graceMin} onChange={(e) => set('graceMin', e.target.value)} /></Field>
+        <Field label="Check for vaccinations not done by" hint="Texts the manager & owner once"><Input type="time" value={r.vaccineCheck} onChange={(e) => set('vaccineCheck', e.target.value)} /></Field>
+        <Field label="Most SMS per day" hint="Protects your SMS credit"><Input inputMode="numeric" value={r.maxSmsDay} onChange={(e) => set('maxSmsDay', e.target.value)} /></Field>
+      </Section>
+      <Section title="Daily summary to the owner" icon={Sunrise} onSave={save}>
+        <Field label="Morning plan (tasks, vaccines, feed for today)" hint="Leave empty to switch off"><Input type="time" value={r.morning} onChange={(e) => set('morning', e.target.value)} /></Field>
+        <Field label="Evening report (done / missed, eggs, deaths, feed)" hint="Leave empty to switch off"><Input type="time" value={r.evening} onChange={(e) => set('evening', e.target.value)} /></Field>
+        <Field label="Also send summaries to farm managers"><Select value={r.toManagers ? 'yes' : 'no'} onChange={(e) => set('toManagers', e.target.value === 'yes')} options={yesNo} /></Field>
+        <p className="text-xs text-slate-500 sm:col-span-2">Times are Ghana time (GMT). Each SMS uses your mNotify credit; summaries are kept short (about 1–2 SMS each).</p>
+      </Section>
     </div>
   );
 }
