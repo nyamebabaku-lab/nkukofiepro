@@ -12,8 +12,10 @@ import './index.css';
 import { appTitle } from './lib/brand';
 import { startOfflineServices } from './data/offline';
 import { isNative, startNative } from './data/native';
+import { startIntro, introStarted } from './lib/intro';
 
 if (!isNative()) startOfflineServices();
+startIntro();
 startNative();
 
 // Each build only contains its own app (the other branches are removed at build time).
@@ -27,7 +29,7 @@ const load =
         : () => import('./apps/DemoApp');
 document.title = appTitle();
 
-load().then(({ default: App }) =>
+introStarted.then(load).then(({ default: App }) =>
   createRoot(document.getElementById('root')).render(
     <StrictMode>
       <App />
