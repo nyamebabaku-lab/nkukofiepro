@@ -39,7 +39,7 @@ A web app for running several poultry farms (layers, broilers, hatchery, turkeys
 | **Nkukɔ Fie Pro** | Customers | https://nyamebabaku-lab.github.io/nkukofiepro/ | [NkukoFiePro.apk](https://github.com/nyamebabaku-lab/nkukofiepro/releases/latest/download/NkukoFiePro.apk) |
 | **Nkukɔ Fie Pro Farm** | Farm owners, managers, workers | https://nyamebabaku-lab.github.io/nkukofiepro/farm/ | [NkukoFiePro-Farm.apk](https://github.com/nyamebabaku-lab/nkukofiepro/releases/latest/download/NkukoFiePro-Farm.apk) |
 | **Nkukɔ Fie Pro Admin** | Platform super admin | https://nyamebabaku-lab.github.io/nkukofiepro/admin/ | [NkukoFiePro-Admin.apk](https://github.com/nyamebabaku-lab/nkukofiepro/releases/latest/download/NkukoFiePro-Admin.apk) |
-| Demo | Anyone (sample farm) | https://nyamebabaku-lab.github.io/nkukofiepro/demo/ | — |
+| Demo | Anyone (sample farm) | https://nkukofie-demo.pages.dev/ (publish with `scripts/deploy-demo.sh`; also /demo/ here) | — |
 
 QR-friendly download pages: `/get/`, `/get-farm/`, `/get-admin/` (Android → APK, iPhone/computer → web app).
 
