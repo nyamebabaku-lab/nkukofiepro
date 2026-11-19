@@ -9,6 +9,7 @@ import { Loading, useAppTheme } from './shared';
 
 const PortalHome = lazy(() => import('../modules/portal/Home'));
 const Shop = lazy(() => import('../modules/portal/Shop'));
+const Credits = lazy(() => import('../modules/portal/Credits'));
 const Cart = lazy(() => import('../modules/portal/Cart'));
 const Account = lazy(() => import('../modules/portal/Account'));
 const MyOrders = lazy(() => import('../modules/portal/MyOrders'));
@@ -21,6 +22,7 @@ function Routed() {
           <Route element={<PortalLayout />}>
             <Route index element={<PortalHome />} />
             <Route path="shop" element={<Shop />} />
+            <Route path="credits" element={<Credits />} />
             <Route path="cart" element={<Cart />} />
             <Route path="account" element={<Account />} />
             <Route path="account/orders" element={<MyOrders />} />

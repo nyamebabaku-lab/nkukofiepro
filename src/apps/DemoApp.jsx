@@ -14,6 +14,7 @@ const Login = lazy(() => import('../modules/auth/Login'));
 const Signup = lazy(() => import('../modules/auth/Signup'));
 const PortalHome = lazy(() => import('../modules/portal/Home'));
 const Shop = lazy(() => import('../modules/portal/Shop'));
+const Credits = lazy(() => import('../modules/portal/Credits'));
 const Cart = lazy(() => import('../modules/portal/Cart'));
 const Account = lazy(() => import('../modules/portal/Account'));
 const MyOrders = lazy(() => import('../modules/portal/MyOrders'));
@@ -86,6 +87,7 @@ export default function DemoApp() {
           <Route element={<PortalLayout />}>
             <Route index element={<PortalHome />} />
             <Route path="shop" element={<Shop />} />
+            <Route path="credits" element={<Credits />} />
             <Route path="cart" element={<Cart />} />
             <Route path="account" element={<Account />} />
             <Route path="account/orders" element={<MyOrders />} />
@@ -94,6 +96,7 @@ export default function DemoApp() {
           <Route path="signup" element={<Signup />} />
           <Route path="app" element={<RequireStaff><AppShell /></RequireStaff>}>
             <Route index element={<Suspense fallback={<Loading />}><Dashboard /></Suspense>} />
+            <Route path="credits" element={<Suspense fallback={<Loading />}><Credits /></Suspense>} />
             {[
               ['log', 'log', DailyLog], ['farms', 'farms', Farms], ['flocks', 'flocks', Flocks], ['flocks/:id', 'flocks', FlockDetail], ['health', 'health', Health],
               ['hatchery', 'hatchery', Hatchery], ['inventory', 'inventory', Inventory], ['orders', 'orders', Orders], ['orders/:id', 'orders', OrderDetail], ['pos', 'pos', POS],

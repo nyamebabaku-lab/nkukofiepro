@@ -163,7 +163,7 @@ export default function Guide() {
           />
         </>
       )}
-      <p className="mt-8 flex items-center gap-2 text-xs text-slate-400"><BookOpen className="h-3.5 w-3.5" /> Based on common Ghana practice and breed guides. Always follow your vet, the feed bag and the vaccine/drug labels where they differ.</p>
+      <p className="mt-8 flex items-center gap-2 text-xs text-slate-400"><BookOpen className="h-3.5 w-3.5" /> Based on common Ghana practice and breed guides. Always follow your vet, the feed bag and the vaccine/drug labels where they differ. <Link to="/app/credits" className="underline">Photo credits</Link></p>
     </div>
   );
 }

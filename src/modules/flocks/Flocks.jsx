@@ -4,6 +4,7 @@ import { Plus, Bird, LayoutGrid, List } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { useCurrentUser, useInScope, useMyFarms } from '../../data/selectors';
 import { PageHeader, Button, Tabs, Badge, DataTable, FormModal, Segmented, Card, Progress, EmptyState, toast, cx } from '../../components/ui';
+import { flockPhoto } from '../../data/media';
 import { flockIndex, ageLabel } from '../../lib/flock';
 import { SPECIES, PURPOSES, speciesLabel, purposeLabel, isLayingType } from '../../lib/standards';
 import { addFlock, nextFlockCode } from '../../lib/health';
@@ -87,7 +88,10 @@ export default function Flocks() {
             const fm = farm(f.farmId);
             return (
               <Card key={f.id} className="cursor-pointer overflow-hidden transition hover:-translate-y-0.5 hover:shadow-lift" onClick={() => navigate(`/app/flocks/${f.id}`)}>
-                <div className="h-1.5" style={{ background: fm?.color }} />
+                <div className="relative h-32">
+                  <img src={flockPhoto(f)} alt={f.breed} loading="lazy" className="h-full w-full object-cover" />
+                  <span className="absolute inset-x-0 bottom-0 h-1.5" style={{ background: fm?.color }} />
+                </div>
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-2">
                     <div>

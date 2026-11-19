@@ -3,7 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Plus, Minus, ShoppingBasket, MapPin, Check } from 'lucide-react';
 import { useCart, useDB } from '../../data/store';
 import { SearchInput, Badge, Modal, Button, toast, cx } from '../../components/ui';
-import { ProductImage } from '../../components/ProductArt';
+import { ProductImage, Photo } from '../../components/ProductArt';
+import { CATEGORY_PHOTO } from '../../data/media';
 import { PRODUCT_CATEGORIES, productStock, categoryLabel } from '../../lib/stock';
 import { unitPrice } from '../../lib/orders';
 import { money, num } from '../../lib/format';
@@ -94,8 +95,8 @@ export default function Shop() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <SearchInput value={q} onChange={setQ} placeholder="Search eggs, chicken, chicks…" className="sm:w-72" />
           <div className="flex min-w-0 gap-1.5 overflow-x-auto pb-1">
-            {[{ value: 'all', label: 'Everything', emoji: '✨' }, ...PRODUCT_CATEGORIES].map((c) => (
-              <button key={c.value} type="button" onClick={() => setParams(c.value === 'all' ? {} : { cat: c.value })} className={cx('whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition', cat === c.value ? 'bg-accent-600 text-white' : 'bg-white text-slate-600 ring-1 ring-cream-300 dark:bg-navy-900 dark:text-slate-300 dark:ring-white/10')}>{c.emoji} {c.label}</button>
+            {[{ value: 'all', label: 'Everything' }, ...PRODUCT_CATEGORIES].map((c) => (
+              <button key={c.value} type="button" onClick={() => setParams(c.value === 'all' ? {} : { cat: c.value })} className={cx('flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full py-1 pl-1 pr-3 text-xs font-semibold transition', cat === c.value ? 'bg-accent-600 text-white' : 'bg-white text-slate-600 ring-1 ring-cream-300 dark:bg-navy-900 dark:text-slate-300 dark:ring-white/10')}><Photo k={CATEGORY_PHOTO[c.value]} className="h-6 w-6" rounded="rounded-full" /> {c.label}</button>
             ))}
           </div>
         </div>

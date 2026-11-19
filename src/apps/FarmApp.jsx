@@ -14,6 +14,7 @@ const Wallet = lazy(() => import('../modules/finance/Wallet'));
 const Payroll = lazy(() => import('../modules/staff/Payroll'));
 const Settings = lazy(() => import('../modules/settings/Settings'));
 const Accounts = lazy(() => import('../modules/admin/Accounts'));
+const Credits = lazy(() => import('../modules/portal/Credits'));
 
 const OWNER_ROUTES = [...STAFF_ROUTES, ['finance', 'finance', Finance], ['wallet', 'wallet', Wallet], ['payroll', 'payroll', Payroll], ['settings', 'settings', Settings], ['accounts', 'accounts', Accounts]];
 
@@ -24,6 +25,7 @@ function Routed() {
         <Routes>
           <Route path="app" element={<AppShell />}>
             <Route index element={<Suspense fallback={<Loading />}><Dashboard /></Suspense>} />
+            <Route path="credits" element={<Suspense fallback={<Loading />}><Credits /></Suspense>} />
             {OWNER_ROUTES.map(([path, k, El]) => (
               <Route key={path} path={path} element={<Suspense fallback={<Loading />}><Gate k={k}><El /></Gate></Suspense>} />
             ))}
