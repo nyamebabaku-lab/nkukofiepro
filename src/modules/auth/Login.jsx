@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Crown, ClipboardList, HardHat, ShoppingBasket, ArrowRight, Eye, EyeOff, Egg, Bird, Wallet } from 'lucide-react';
 import { useDB, useSession } from '../../data/store';
 import { Button, Field, Input, Segmented, toast, cx } from '../../components/ui';
@@ -38,6 +38,15 @@ export default function Login() {
     }
     return null;
   };
+
+  // Direct demo links: #/login?as=owner | manager | worker | customer opens that person's view straight away.
+  const [params] = useSearchParams();
+  useEffect(() => {
+    const as = { owner: 'usr_owner', manager: 'usr_akosua', worker: 'usr_kojo', customer: 'cus_kofi' }[params.get('as')];
+    const d = DEMOS.find((x) => x.id === as);
+    const rec = d && (d.customer ? customers : users).find((u) => u.id === d.id);
+    if (rec) enter(rec, d.customer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const submit = (e) => {
     e.preventDefault();
