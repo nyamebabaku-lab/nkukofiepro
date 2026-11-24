@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { addDays, endOfMonth, format, getDay, startOfMonth } from 'date-fns';
-import { Syringe, Pill, CalendarDays, List, Plus, ChevronLeft, ChevronRight, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Syringe, Pill, CalendarDays, List, Plus, ChevronLeft, ChevronRight, ShieldAlert, CheckCircle2, Stethoscope } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { useCurrentUser, useInScope } from '../../data/selectors';
+import AiVet from './AiVet';
 import { PageHeader, Button, Tabs, Badge, Card, CardHeader, DataTable, FormModal, Modal, Field, Input, Select, StatCard, Segmented, IconButton, toast, cx } from '../../components/ui';
 import { vaccineState } from '../../lib/vaccines';
 import { markVaccineDone, skipVaccine, addTreatment } from '../../lib/health';
@@ -126,7 +127,8 @@ export default function Health() {
           ))}
         </div>
       )}
-      <Tabs className="mb-4" value={tab} onChange={(v) => setParams({ tab: v })} tabs={[{ value: 'vaccines', label: 'Vaccinations', icon: Syringe, count: overdue.length + week.length }, { value: 'treatments', label: 'Treatments', icon: Pill, count: db.treatments.filter((r) => inScope(r.farmId)).length }]} />
+      <Tabs className="mb-4" value={tab} onChange={(v) => setParams({ tab: v })} tabs={[{ value: 'vaccines', label: 'Vaccinations', icon: Syringe, count: overdue.length + week.length }, { value: 'treatments', label: 'Treatments', icon: Pill, count: db.treatments.filter((r) => inScope(r.farmId)).length }, { value: 'vet', label: 'AI vet', icon: Stethoscope }]} />
+      {tab === 'vet' && <AiVet />}
       {tab === 'vaccines' && (
         <>
           <div className="mb-4 flex flex-wrap items-center gap-3">

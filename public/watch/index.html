@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poultry disease watch</title>
+<style>
+:root{--bg:#f6f1e7;--card:#fff;--ink:#1b2a21;--muted:#5e6b62;--brand:#1f3d2b;--gold:#d9a441;--red:#b42318}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a14;--card:#16241c;--ink:#eef3ef;--muted:#9fb0a5}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif}
+header{background:var(--brand);color:#fff;padding:20px 16px}header h1{margin:0;font-size:22px}header p{margin:4px 0 0;opacity:.8;font-size:14px}
+main{max-width:860px;margin:0 auto;padding:16px}
+.c{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.c b{font-size:16px}.m{color:var(--muted);font-size:13px;margin:4px 0}.s{color:var(--red);font-weight:600;font-size:13px}.msg{font-size:14px;line-height:1.45;margin-top:8px}
+.e{color:var(--muted);text-align:center;padding:40px 0}
+</style></head>
+<body><header><h1>Poultry disease watch</h1><p id="sub">Alerts reviewed and sent by the Nkukɔ Fie Pro team · no farm names</p></header>
+<main id="list"><p class="e">Loading…</p></main>
+<script>
+// Public values: the Supabase project URL and anon key (row-level security protects the data).
+var URL_='https://tzslrrptbmhdlhxbfujq.supabase.co',KEY='__ANON__';
+var t=new URLSearchParams(location.search).get('t'),el=document.getElementById('list');
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+if(!t){el.innerHTML='<p class="e">This link is missing its access code.</p>'}else{
+fetch(URL_+'/rest/v1/rpc/outbreak_feed',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify({t:t})})
+.then(function(r){return r.json()}).then(function(rows){
+ if(!Array.isArray(rows)||!rows.length){el.innerHTML='<p class="e">No alerts have been sent'+(Array.isArray(rows)?'.':' — or this link is no longer active.')+'</p>';return}
+ el.innerHTML=rows.map(function(r){return '<div class="c"><b>'+esc(r.district)+(r.region?', '+esc(r.region):'')+'</b><p class="m">'+esc(r.detected_on)+' · '+r.farms+' farm(s) · '+r.birds_dead+' deaths in 3 days'+(r.rate_pct?' ('+r.rate_pct+'%)':'')+'</p>'+(r.suspected?'<p class="s">Suspected: '+esc(r.suspected)+'</p>':'')+'<p class="msg">'+esc(r.message)+'</p></div>'}).join('')
+}).catch(function(){el.innerHTML='<p class="e">Could not load alerts. Check your internet connection.</p>'})}
+</script></body></html>

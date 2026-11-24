@@ -14,7 +14,7 @@ const PREFIX = {
   flockMoves: 'fmv', vaccinations: 'vac', treatments: 'trt', hatchBatches: 'htc', items: 'itm', stockMoves: 'smv', suppliers: 'sup',
   products: 'prd', productMoves: 'pmv', customers: 'cus', orders: 'ord', payments: 'pay', walletTx: 'wtx', expenses: 'exp',
   users: 'usr', tasks: 'tsk', taskRuns: 'trn', attendance: 'att', advances: 'adv', payruns: 'prn', assets: 'ast', maintenance: 'mnt',
-  notifications: 'ntf', smsLog: 'sms', audit: 'aud', vaccineTemplates: 'vtp',
+  notifications: 'ntf', smsLog: 'sms', audit: 'aud', vaccineTemplates: 'vtp', vetCases: 'vet',
 };
 
 // localStorage that reports a full device instead of failing silently.

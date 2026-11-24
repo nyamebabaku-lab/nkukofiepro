@@ -15,6 +15,7 @@ const Signup = lazy(() => import('../modules/auth/Signup'));
 const PortalHome = lazy(() => import('../modules/portal/Home'));
 const Shop = lazy(() => import('../modules/portal/Shop'));
 const Credits = lazy(() => import('../modules/portal/Credits'));
+const BuyerMarket = lazy(() => import('../modules/market/BuyerMarket'));
 const Cart = lazy(() => import('../modules/portal/Cart'));
 const Account = lazy(() => import('../modules/portal/Account'));
 const MyOrders = lazy(() => import('../modules/portal/MyOrders'));
@@ -44,6 +45,7 @@ const Reports = lazy(() => import('../modules/reports/Reports'));
 const Settings = lazy(() => import('../modules/settings/Settings'));
 const Notifications = lazy(() => import('../modules/notifications/Notifications'));
 const Guide = lazy(() => import('../modules/guide/Guide'));
+const FarmMarket = lazy(() => import('../modules/market/FarmMarket'));
 
 function Loading() {
   return (
@@ -88,6 +90,7 @@ export default function DemoApp() {
             <Route index element={<PortalHome />} />
             <Route path="shop" element={<Shop />} />
             <Route path="credits" element={<Credits />} />
+            <Route path="market" element={<BuyerMarket />} />
             <Route path="cart" element={<Cart />} />
             <Route path="account" element={<Account />} />
             <Route path="account/orders" element={<MyOrders />} />
@@ -102,7 +105,7 @@ export default function DemoApp() {
               ['hatchery', 'hatchery', Hatchery], ['inventory', 'inventory', Inventory], ['orders', 'orders', Orders], ['orders/:id', 'orders', OrderDetail], ['pos', 'pos', POS],
               ['pickups', 'pickups', Pickups], ['customers', 'customers', Customers], ['customers/:id', 'customers', CustomerDetail], ['products', 'products', Products],
               ['finance', 'finance', Finance], ['wallet', 'wallet', Wallet], ['payroll', 'payroll', Payroll], ['staff', 'staff', Staff], ['tasks', 'tasks', Tasks],
-              ['attendance', 'attendance', Attendance], ['maintenance', 'maintenance', Maintenance], ['reports', 'reports', Reports], ['settings', 'settings', Settings], ['notifications', 'notifications', Notifications], ['guide', 'guide', Guide],
+              ['attendance', 'attendance', Attendance], ['maintenance', 'maintenance', Maintenance], ['reports', 'reports', Reports], ['settings', 'settings', Settings], ['notifications', 'notifications', Notifications], ['guide', 'guide', Guide], ['market', 'market', FarmMarket],
             ].map(([path, k, El]) => (
               <Route key={path} path={path} element={<Suspense fallback={<Loading />}>{page(k, El)}</Suspense>} />
             ))}

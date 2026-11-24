@@ -1,12 +1,18 @@
-// One payment window for everything: MoMo, card or cash, with a simulated phone prompt.
-import { useEffect, useState } from 'react';
-import { Smartphone, CreditCard, Loader2, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
+// One payment window for everything: MoMo, card or cash.
+// Live apps: MoMo/card go through Paystack (money settles straight to the farm). Demo: a simulated phone prompt.
+import { useEffect, useRef, useState } from 'react';
+import { Smartphone, CreditCard, Loader2, CheckCircle2, XCircle, ShieldCheck, ExternalLink } from 'lucide-react';
 import { Modal, Button, Field, Input, cx } from './ui';
 import PayLogo from './PayLogo';
 import { METHODS, charge } from '../lib/payments';
 import { money, round2 } from '../lib/format';
+import { LIVE } from '../config';
+import { useDB } from '../data/store';
+import { startCheckout, openCheckout, watchPayment, verifyPayment } from '../lib/paystack';
 
-export default function PayModal({ open, onClose, title = 'Payment', subtitle, amount, min = 0.01, max, editable = true, methods = ['mtn', 'telecel', 'at', 'card', 'cash'], phone = '', onPaid, presets = [] }) {
+export default function PayModal({ open, onClose, title = 'Payment', subtitle, amount, min = 0.01, max, editable = true, methods = ['mtn', 'telecel', 'at', 'card', 'cash'], phone = '', onPaid, presets = [], businessId, purpose = 'order', purposeId }) {
+  const bid = useDB((s) => s.businessId);
+  const live = useRef({ ref: null, url: null, stop: null });
   const [method, setMethod] = useState(methods[0]);
   const [account, setAccount] = useState(phone);
   const [card, setCard] = useState({ number: '', exp: '', cvv: '' });
@@ -23,7 +29,43 @@ export default function PayModal({ open, onClose, title = 'Payment', subtitle, a
       setError('');
       setCard({ number: '', exp: '', cvv: '' });
     }
+    if (!open) live.current.stop?.();
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => live.current.stop?.(), []);
+
+  // Live: Paystack's secure page takes the MoMo number or card; we wait for its confirmation.
+  const payLive = async (acct) => {
+    setStage('wait');
+    try {
+      const r = await startCheckout({ businessId: businessId || bid, amount: value, purpose, purposeId, phone: acct });
+      live.current = { ref: r.reference, url: r.url, stop: null };
+      live.current.stop = watchPayment(r.reference, (res) => finishLive(res, acct));
+    } catch (e) {
+      setStage('form');
+      setError(e.message);
+    }
+  };
+  const finishLive = (res, acct) => {
+    if (res.status === 'success') {
+      setStage('done');
+      onPaid?.({ method, account: res.channel === 'card' ? 'Card' : acct, amount: res.amount || value, ref: live.current.ref });
+    } else {
+      setStage('form');
+      setError(res.status === 'timeout' ? 'We did not get a confirmation. If money left your account, it will show within minutes — check again before paying twice.' : 'The payment did not go through. Try again or choose another method.');
+    }
+  };
+  const checkNow = async () => {
+    if (!live.current.ref) return;
+    try {
+      const r = await verifyPayment(live.current.ref);
+      if (r.status === 'success' || r.status === 'failed') {
+        live.current.stop?.();
+        finishLive(r, account);
+      }
+    } catch {
+      /* keep waiting */
+    }
+  };
 
   const m = METHODS.find((x) => x.id === method);
   const value = round2(+amt || 0);
@@ -33,7 +75,8 @@ export default function PayModal({ open, onClose, title = 'Payment', subtitle, a
     setError('');
     if (invalid) return setError(max != null ? `Enter between ${money(min)} and ${money(max)}` : `Enter at least ${money(min)}`);
     if (m.kind === 'momo' && !/^0\d{9}$/.test(account.replace(/\s/g, ''))) return setError('Enter a 10-digit MoMo number');
-    if (m.kind === 'card' && card.number.replace(/\s/g, '').length < 12) return setError('Enter the card number');
+    if (!LIVE && m.kind === 'card' && card.number.replace(/\s/g, '').length < 12) return setError('Enter the card number');
+    if (LIVE && m.kind !== 'cash') return payLive(m.kind === 'momo' ? account.replace(/\s/g, '') : '');
     setStage('wait');
     const acct = m.kind === 'card' ? card.number.replace(/\s/g, '') : account.replace(/\s/g, '');
     const r = await charge({ method, account: acct });
@@ -61,8 +104,21 @@ export default function PayModal({ open, onClose, title = 'Payment', subtitle, a
             <span className="absolute inset-0 animate-ping rounded-full bg-gold-400/40" />
             <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gold-500 text-brand-950">{m.kind === 'card' ? <CreditCard className="h-7 w-7" /> : <Smartphone className="h-7 w-7" />}</span>
           </div>
-          <p className="font-semibold text-slate-900 dark:text-white">{m.kind === 'card' ? 'Confirming with your bank…' : `Approve the prompt on ${account}`}</p>
-          <p className="mt-1 text-sm text-slate-500">{m.kind === 'card' ? 'This takes a few seconds' : 'Enter your MoMo PIN on your phone to confirm'}</p>
+          {LIVE ? (
+            <>
+              <p className="font-semibold text-slate-900 dark:text-white">Finish paying on the Paystack page</p>
+              <p className="mt-1 max-w-xs text-sm text-slate-500">{m.kind === 'card' ? 'Enter your card details there.' : `Choose ${m.label}, then approve the prompt on your phone with your PIN.`} This window updates by itself.</p>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                {live.current.url && <Button size="sm" variant="secondary" icon={ExternalLink} onClick={() => openCheckout(live.current.url)}>Open payment page again</Button>}
+                <Button size="sm" variant="ghost" onClick={checkNow}>I have paid — check now</Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="font-semibold text-slate-900 dark:text-white">{m.kind === 'card' ? 'Confirming with your bank…' : `Approve the prompt on ${account}`}</p>
+              <p className="mt-1 text-sm text-slate-500">{m.kind === 'card' ? 'This takes a few seconds' : 'Enter your MoMo PIN on your phone to confirm'}</p>
+            </>
+          )}
           <Loader2 className="mt-5 h-5 w-5 animate-spin text-slate-400" />
         </div>
       ) : (
@@ -86,7 +142,7 @@ export default function PayModal({ open, onClose, title = 'Payment', subtitle, a
             </div>
           )}
           {m.kind === 'momo' && <Field label="MoMo number"><Input inputMode="tel" value={account} onChange={(e) => setAccount(e.target.value)} placeholder="024 123 4567" /></Field>}
-          {m.kind === 'card' && (
+          {m.kind === 'card' && !LIVE && (
             <div className="grid grid-cols-6 gap-3">
               <Field label="Card number" className="col-span-6"><Input inputMode="numeric" value={card.number} onChange={(e) => setCard({ ...card, number: e.target.value })} placeholder="4242 4242 4242 4242" /></Field>
               <Field label="Expiry" className="col-span-3"><Input value={card.exp} onChange={(e) => setCard({ ...card, exp: e.target.value })} placeholder="MM/YY" /></Field>
@@ -96,7 +152,7 @@ export default function PayModal({ open, onClose, title = 'Payment', subtitle, a
           {m.kind === 'cash' && <p className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">Cash is recorded now and counted in “cash on hand” until it is banked.</p>}
           {error && <p className="flex items-center gap-2 rounded-xl bg-accent-50 p-3 text-sm font-medium text-accent-700 dark:bg-accent-500/10 dark:text-accent-300"><XCircle className="h-4 w-4 shrink-0" /> {error}</p>}
           <Button size="lg" className="w-full" onClick={pay}>{method === 'cash' ? `Record ${money(value)} cash` : `Pay ${money(value)}`}</Button>
-          <p className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400"><ShieldCheck className="h-3.5 w-3.5" /> Demo payments — no real money moves. A number ending in 000 or a card ending in 0002 is declined.</p>
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400"><ShieldCheck className="h-3.5 w-3.5" /> {LIVE ? 'Secure payment by Paystack — the money goes straight to the farm.' : 'Demo payments — no real money moves. A number ending in 000 or a card ending in 0002 is declined.'}</p>
         </div>
       )}
     </Modal>

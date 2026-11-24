@@ -8,6 +8,7 @@ import { useCurrentUser } from '../../data/selectors';
 import { useBrand, setFarmBrand, logoFromFile, appName } from '../../lib/brand';
 import { setBusinessLogo } from '../../lib/accounts';
 import { fmtDate, fmtDateTime, today } from '../../lib/format';
+import PaymentsTab from './PaymentsTab';
 
 function Section({ title, icon, children, onSave }) {
   return (
@@ -142,8 +143,9 @@ export default function Settings() {
   return (
     <div>
       <PageHeader title="Settings" subtitle="Business details, shop rules, alerts, wallet and data" />
-      <Tabs className="mb-5" value={tab} onChange={setTab} tabs={[{ value: 'general', label: 'General' }, { value: 'reminders', label: 'Reminders & SMS' }, { value: 'health', label: 'Vaccination schedules' }, { value: 'data', label: 'Data & logs' }]} />
+      <Tabs className="mb-5" value={tab} onChange={setTab} tabs={[{ value: 'general', label: 'General' }, ...(LIVE ? [{ value: 'payments', label: 'Payments & marketplace' }] : []), { value: 'reminders', label: 'Reminders & SMS' }, { value: 'health', label: 'Vaccination schedules' }, { value: 'data', label: 'Data & logs' }]} />
       {tab === 'reminders' && <RemindersTab s={s} setS={setS} />}
+      {tab === 'payments' && LIVE && <PaymentsTab />}
       {tab === 'general' && (
         <div className="grid gap-6 xl:grid-cols-2">
           <div className="xl:col-span-2"><FarmLogoCard /></div>

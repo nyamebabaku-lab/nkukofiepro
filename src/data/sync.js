@@ -7,7 +7,7 @@ import { productIndex } from '../lib/stock';
 
 const ARRAYS = ['farms', 'pens', 'flocks', 'feedLogs', 'eggLogs', 'weightLogs', 'mortality', 'envLogs', 'flockMoves', 'vaccinations', 'treatments', 'hatchBatches',
   'items', 'stockMoves', 'suppliers', 'products', 'productMoves', 'customers', 'orders', 'payments', 'walletTx', 'expenses', 'users', 'tasks', 'taskRuns',
-  'attendance', 'advances', 'payruns', 'assets', 'maintenance', 'notifications', 'smsLog', 'audit', 'vaccineTemplates', 'shopStock'];
+  'attendance', 'advances', 'payruns', 'assets', 'maintenance', 'notifications', 'smsLog', 'audit', 'vaccineTemplates', 'shopStock', 'vetCases'];
 // Lists the app trims locally to keep storage small; trimming must not delete them online.
 const NO_DELETE = new Set(['audit', 'notifications', 'smsLog']);
 const STOCK_INPUTS = ['products', 'orders', 'eggLogs', 'productMoves', 'flocks', 'mortality', 'flockMoves', 'farms'];

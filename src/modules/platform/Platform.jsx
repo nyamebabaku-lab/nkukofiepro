@@ -1,6 +1,6 @@
 // Super admin: approve and manage farm businesses and every account; clear demo & test data.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Palette, ImagePlus, RotateCcw, Save, MessageSquare, Loader2, KeyRound, Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle } from 'lucide-react';
+import { Palette, ImagePlus, RotateCcw, Save, MessageSquare, Loader2, KeyRound, Building2, Users, Hourglass, Database, Eye, CheckCircle2, PauseCircle, PlayCircle, Power, Trash2, FlaskConical, LogOut, Moon, Sun, ShieldCheck, LayoutDashboard, AlertTriangle, Handshake, Activity } from 'lucide-react';
 import { useSession } from '../../data/store';
 import { Button, Card, CardHeader, Badge, Tabs, DataTable, Avatar, StatCard, Modal, Field, Input, EmptyState, Toaster, confirmDialog, toast, cx } from '../../components/ui';
 import Logo, { BrandMark } from '../../components/layout/Logo';
@@ -12,6 +12,8 @@ import { TempPasswordModal, ChangePasswordModal } from '../live/Passwords';
 import { sendSms, smsBalance, smsHistory } from '../../lib/sms';
 import { leave, useLive } from '../live/useLive';
 import { fmtDateTime } from '../../lib/format';
+import MarketAdmin from './MarketAdmin';
+import DiseaseWatch from './DiseaseWatch';
 
 function BusinessActions({ b, onDone, onOpen, ownerPhone }) {
   const run = async (fn, ok) => {
@@ -298,10 +300,14 @@ export default function Platform() {
             { value: 'overview', label: 'Overview', icon: LayoutDashboard, count: pendingBiz.length + pendingUsers.length || undefined },
             { value: 'businesses', label: 'Businesses', icon: Building2, count: data.businesses.length },
             { value: 'accounts', label: 'Accounts', icon: Users, count: data.profiles.length },
+            { value: 'market', label: 'Money, AI & buyers', icon: Handshake },
+            { value: 'watch', label: 'Disease watch', icon: Activity },
             { value: 'branding', label: 'Branding', icon: Palette },
             { value: 'data', label: 'Data', icon: Database },
           ]}
         />
+        {tab === 'market' && <MarketAdmin businesses={data.businesses} onChanged={load} />}
+        {tab === 'watch' && <DiseaseWatch />}
         {tab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">

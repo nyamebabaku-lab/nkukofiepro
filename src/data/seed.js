@@ -20,7 +20,7 @@ function rng(seed) {
 
 const COLLECTIONS = ['farms', 'pens', 'flocks', 'feedLogs', 'eggLogs', 'weightLogs', 'mortality', 'envLogs', 'flockMoves', 'vaccinations', 'treatments', 'hatchBatches',
   'items', 'stockMoves', 'suppliers', 'products', 'productMoves', 'customers', 'orders', 'payments', 'walletTx', 'expenses',
-  'users', 'tasks', 'taskRuns', 'attendance', 'advances', 'payruns', 'assets', 'maintenance', 'notifications', 'smsLog', 'audit', 'shopStock'];
+  'users', 'tasks', 'taskRuns', 'attendance', 'advances', 'payruns', 'assets', 'maintenance', 'notifications', 'smsLog', 'audit', 'shopStock', 'vetCases'];
 
 /** Default settings for a new, real business (also the base the demo builds on). */
 export const defaultSettings = () => ({

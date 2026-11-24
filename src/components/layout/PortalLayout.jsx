@@ -29,8 +29,11 @@ export default function PortalLayout() {
   }, [loc.pathname]);
   const count = lines.reduce((a, l) => a + l.qty, 0);
   const unread = customer ? notificationsFor(null, customer, db.notifications).filter((n) => !n.read).length : 0;
-  const links = [
+  // Marketplace-only buyers (no farm) see just the marketplace.
+  const marketOnly = LIVE && !!useSession.getState().profile && !useSession.getState().profile.business_id;
+  const links = marketOnly ? [{ to: '/market', label: 'Marketplace' }] : [
     { to: '/shop', label: 'Shop' },
+    { to: '/market', label: 'Marketplace' },
     ...(customer ? [{ to: '/account/orders', label: 'My orders' }, { to: '/account', label: 'My account', end: true }] : []),
   ];
 
@@ -52,10 +55,10 @@ export default function PortalLayout() {
                 {unread > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-accent-600" />}
               </Link>
             )}
-            <Link to="/cart" className="relative rounded-xl p-2 text-slate-600 hover:bg-cream-200 dark:text-slate-300 dark:hover:bg-white/10" aria-label="Cart">
+            {!marketOnly && <Link to="/cart" className="relative rounded-xl p-2 text-slate-600 hover:bg-cream-200 dark:text-slate-300 dark:hover:bg-white/10" aria-label="Cart">
               <ShoppingBasket className="h-5 w-5" />
               {count > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-600 px-1 text-[10px] font-bold text-white">{count > 99 ? '99+' : count}</span>}
-            </Link>
+            </Link>}
             {staff ? (
               <Link to="/app" className="ml-1 hidden sm:block"><Button size="sm" icon={LayoutDashboard}>Farm dashboard</Button></Link>
             ) : customer ? (

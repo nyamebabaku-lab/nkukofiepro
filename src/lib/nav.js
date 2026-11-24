@@ -2,7 +2,7 @@ import { MODE } from '../config';
 import {
   UserCheck,
   LayoutDashboard, ClipboardPen, Warehouse, Bird, Syringe, Egg, Package, ShoppingBag, Store, CalendarClock, Users, Tags,
-  LineChart, Wallet, Banknote, UserCog, ListChecks, Clock, Wrench, BarChart3, Settings, Bell, BookOpen,
+  LineChart, Wallet, Banknote, UserCog, ListChecks, Clock, Wrench, BarChart3, Settings, Bell, BookOpen, Handshake,
 } from 'lucide-react';
 
 export const ROLES = {
@@ -26,6 +26,7 @@ export const NAV = [
   ] },
   { group: 'Sales', items: [
     { key: 'orders', label: 'Orders', path: '/app/orders', icon: ShoppingBag },
+    { key: 'market', label: 'Marketplace', path: '/app/market', icon: Handshake },
     { key: 'pos', label: 'Point of sale', path: '/app/pos', icon: Store },
     { key: 'pickups', label: 'Pick-ups', path: '/app/pickups', icon: CalendarClock },
     { key: 'customers', label: 'Customers & debts', path: '/app/customers', icon: Users },
@@ -52,7 +53,7 @@ export const EXTRA = [{ key: 'notifications', label: 'Notifications', path: '/ap
 
 const ACCESS = {
   owner: '*',
-  manager: ['dashboard', 'log', 'farms', 'flocks', 'guide', 'health', 'hatchery', 'inventory', 'orders', 'pos', 'pickups', 'customers', 'products', 'staff', 'tasks', 'attendance', 'maintenance', 'reports', 'notifications'],
+  manager: ['dashboard', 'log', 'farms', 'flocks', 'guide', 'health', 'hatchery', 'inventory', 'orders', 'market', 'pos', 'pickups', 'customers', 'products', 'staff', 'tasks', 'attendance', 'maintenance', 'reports', 'notifications'],
   worker: ['dashboard', 'log', 'flocks', 'guide', 'health', 'hatchery', 'pickups', 'tasks', 'attendance', 'notifications'],
 };
 export const can = (role, key) => ACCESS[role] === '*' || (ACCESS[role] || []).includes(key);

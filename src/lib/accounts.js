@@ -80,6 +80,18 @@ export async function registerBusiness({ bizName, bizLocation, bizPhone, fullNam
   return fetchProfile();
 }
 
+/** Marketplace-only account (no farm code): households, traders, bulk and government buyers. */
+export async function signUpBuyer({ fullName, phone, password, kind, org, region, district }) {
+  const p = checkPhone(phone);
+  if (!fullName?.trim()) throw new Error('Enter your full name');
+  if (kind !== 'household' && !org?.trim()) throw new Error('Enter your business or organisation name');
+  await authFor(p, password, true);
+  const existing = await fetchProfile();
+  if (existing && !existing.missing) throw new Error('That phone number already has an account — sign in instead');
+  must(await supabase.rpc('become_buyer', { full_name: fullName.trim(), phone: p, kind, org: org || null, reg: region || null, dist: district || null }));
+  return fetchProfile();
+}
+
 export const superAdminExists = async () => must(await supabase.rpc('super_admin_exists'));
 
 export async function claimSuperAdmin({ fullName, phone, password }) {
@@ -101,6 +113,12 @@ export async function enterApp(profile, { viewBusinessId } = {}) {
   }
   if (profile.role === 'customer') useSession.setState({ customerId: profile.user_id, userId: null });
   else useSession.setState({ userId: profile.user_id, customerId: null });
+  // Marketplace-only buyers have no farm to load.
+  if (!profile.business_id) {
+    stopSync();
+    useDB.getState().loadBusiness({});
+    return;
+  }
   await startSync(profile.business_id, { role: profile.role });
 }
 

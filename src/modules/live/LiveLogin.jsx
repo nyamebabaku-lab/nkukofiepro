@@ -2,10 +2,12 @@
 // Farm app: workers and managers join with a farm code, owners register a business. Admin app: super admin only.
 import { useEffect, useState } from 'react';
 import { ArrowRight, Eye, EyeOff, CheckCircle2, ShieldCheck, Building2, UserPlus, LogIn, Loader2, KeyRound } from 'lucide-react';
-import { Button, Field, Input, Segmented, toast, cx } from '../../components/ui';
+import { Button, Field, Input, Segmented, Select, toast, cx } from '../../components/ui';
 import Logo from '../../components/layout/Logo';
 import HeroPhoto from '../../components/HeroPhoto';
-import { signIn, signUpMember, registerBusiness, businessByCode, superAdminExists, claimSuperAdmin, requestReset, MEMBER_ROLES } from '../../lib/accounts';
+import { signIn, signUpMember, signUpBuyer, registerBusiness, businessByCode, superAdminExists, claimSuperAdmin, requestReset, MEMBER_ROLES } from '../../lib/accounts';
+import { BUYER_TYPES } from '../../lib/market';
+import { REGIONS } from '../../lib/ghana';
 import { decide, useLive } from './useLive';
 import { useBrand } from '../../lib/brand';
 
@@ -128,6 +130,42 @@ function JoinForm() {
   );
 }
 
+function MarketForm() {
+  const [v, setV] = useState({ fullName: '', phone: '', password: '', kind: 'household', org: '', region: '', district: '' });
+  const [busy, setBusy] = useState(false);
+  const set = (k, x) => setV((s) => ({ ...s, [k]: x }));
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await decide(await signUpBuyer(v));
+    } catch (err) {
+      toast.error('Account not created', err.message);
+    }
+    setBusy(false);
+  };
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <p className="rounded-xl bg-cream-200/60 p-3 text-sm text-slate-600 dark:bg-white/5 dark:text-slate-300">No farm code? Buy from farms all over Ghana on the marketplace.</p>
+      <div className="grid grid-cols-2 gap-2">
+        {BUYER_TYPES.map((t) => (
+          <button key={t.value} type="button" onClick={() => set('kind', t.value)} className={cx('rounded-xl border p-2.5 text-left text-xs transition', v.kind === t.value ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-600/20 dark:bg-brand-500/10' : 'border-cream-300 dark:border-white/10')}><b className="block text-sm">{t.label}</b>{t.sub}</button>
+        ))}
+      </div>
+      {v.kind !== 'household' && <Field label="Business / organisation"><Input value={v.org} onChange={(e) => set('org', e.target.value)} /></Field>}
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Region"><Select placeholder="Choose…" value={v.region} onChange={(e) => set('region', e.target.value)} options={REGIONS} /></Field>
+        <Field label="District / town"><Input value={v.district} onChange={(e) => set('district', e.target.value)} /></Field>
+      </div>
+      <Field label="Full name"><Input value={v.fullName} onChange={(e) => set('fullName', e.target.value)} autoComplete="name" /></Field>
+      <Field label="Phone number" hint="You'll sign in with this number"><Input inputMode="tel" autoComplete="tel" value={v.phone} onChange={(e) => set('phone', e.target.value)} placeholder="024 123 4567" /></Field>
+      <Field label="Create a password"><Password value={v.password} onChange={(p) => set('password', p)} auto="new-password" /></Field>
+      <Button type="submit" size="lg" className="w-full" icon={busy ? Loader2 : UserPlus} disabled={busy}>{busy ? 'Creating…' : 'Create buyer account'}</Button>
+      {v.kind !== 'household' && <p className="text-center text-xs text-slate-500">Traders, bulk and government buyers are checked before they can post requests or get wholesale prices. You can buy straight away.</p>}
+    </form>
+  );
+}
+
 function BusinessForm() {
   const [v, setV] = useState({ bizName: '', bizLocation: '', bizPhone: '', fullName: '', phone: '', password: '' });
   const [busy, setBusy] = useState(false);
@@ -204,8 +242,8 @@ export default function LiveLogin() {
     ? [{ value: 'in', label: 'Sign in' }, { value: 'join', label: 'Join a farm' }, { value: 'biz', label: 'Register farm' }]
     : ADMIN
       ? []
-      : [{ value: 'in', label: 'Sign in' }, { value: 'join', label: 'Create account' }];
-  const title = ADMIN && needsSuper ? `Set up ${name}` : tab === 'in' ? 'Sign in' : tab === 'biz' ? 'Register your farm business' : FARM ? 'Join your farm' : 'Create your account';
+      : [{ value: 'in', label: 'Sign in' }, { value: 'join', label: 'Farm customer' }, { value: 'market', label: 'Marketplace' }];
+  const title = ADMIN && needsSuper ? `Set up ${name}` : tab === 'in' ? 'Sign in' : tab === 'biz' ? 'Register your farm business' : tab === 'market' ? 'Join the marketplace' : FARM ? 'Join your farm' : 'Create your account';
 
   return (
     <div className="grid min-h-screen bg-cream-100 dark:bg-navy-950 lg:grid-cols-[1.05fr_1fr]">
@@ -234,7 +272,7 @@ export default function LiveLogin() {
           ) : (
             <>
               {tabs.length > 0 && <Segmented className="mt-6 w-full [&>button]:flex-1" options={tabs} value={tab} onChange={setTab} />}
-              <div className={cx('mt-6')}>{tab === 'in' ? <SignInForm /> : tab === 'biz' ? <BusinessForm /> : <JoinForm />}</div>
+              <div className={cx('mt-6')}>{tab === 'in' ? <SignInForm /> : tab === 'biz' ? <BusinessForm /> : tab === 'market' ? <MarketForm /> : <JoinForm />}</div>
             </>
           )}
         </div>

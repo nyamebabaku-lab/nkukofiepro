@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 // Four builds from one codebase (VITE_APP): main → dist/ (customers), farm → dist/farm/,
 // admin → dist/admin/ (super admin), demo → dist/demo/.
@@ -13,13 +15,32 @@ const META = {
   demo: { name: `${NAME} — Demo`, short: 'NF Demo', desc: 'Try Nkukɔ Fie Pro with a sample farm', out: 'dist/demo' },
 }[APP];
 // Paths of the other apps that live inside the main app's folder.
-const OTHERS = ['admin', 'farm', 'demo', 'get', 'get-farm', 'get-admin'];
+const OTHERS = ['admin', 'farm', 'demo', 'get', 'get-farm', 'get-admin', 'paid', 'watch'];
+
+function loadDotEnv() {
+  try {
+    return Object.fromEntries(readFileSync('.env.local', 'utf8').split('\n').map((l) => l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map((m) => [m[1], m[2].replace(/^['"]|['"]$/g, '')]));
+  } catch {
+    return {};
+  }
+}
 
 export default defineConfig({
   base: './',
   define: { 'import.meta.env.VITE_APP': JSON.stringify(APP) },
   plugins: [
     react(),
+    // The public disease-watch page reads the Supabase URL/anon key (public values) from the build environment.
+    {
+      name: 'watch-page-keys',
+      apply: 'build',
+      closeBundle() {
+        const f = join(process.env.OUT_DIR || META.out, 'watch', 'index.html');
+        if (!existsSync(f)) return;
+        const env = { ...process.env, ...loadDotEnv() };
+        writeFileSync(f, readFileSync(f, 'utf8').replace('__ANON__', env.VITE_SUPABASE_ANON_KEY || '').replace('https://tzslrrptbmhdlhxbfujq.supabase.co', env.VITE_SUPABASE_URL || 'https://tzslrrptbmhdlhxbfujq.supabase.co'));
+      },
+    },
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'logo.png', 'apple-touch-icon.png'],
@@ -44,8 +65,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2,mp4,webm}'],
         // The main app's folder also holds the admin and demo apps; never cache or answer for them.
         // Never cache or answer for the other apps or the /get download pages.
-        globIgnores: APP === 'main' ? OTHERS.map((d) => `${d}/**`) : ['get/**', 'get-farm/**', 'get-admin/**'],
-        navigateFallbackDenylist: APP === 'main' ? OTHERS.map((d) => new RegExp(`/${d}/`)) : [/\/get(-farm|-admin)?\//],
+        globIgnores: APP === 'main' ? OTHERS.map((d) => `${d}/**`) : ['get/**', 'get-farm/**', 'get-admin/**', 'paid/**', 'watch/**'],
+        navigateFallbackDenylist: APP === 'main' ? OTHERS.map((d) => new RegExp(`/${d}/`)) : [/\/get(-farm|-admin)?\//, /\/paid\//, /\/watch\//],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',
