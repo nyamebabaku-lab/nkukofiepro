@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
-import { Plus, Egg, Lightbulb, Bird, Timer } from 'lucide-react';
+import { Plus, Egg, Lightbulb, Bird, Timer, Pencil, Thermometer } from 'lucide-react';
 import { useDB } from '../../data/store';
 import { useCurrentUser, useInScope, useMyFarms } from '../../data/selectors';
-import { PageHeader, Button, Card, Badge, Progress, FormModal, Modal, Field, Input, Select, Segmented, StatCard, DataTable, toast } from '../../components/ui';
+import { PageHeader, Button, Card, CardHeader, Badge, Progress, FormModal, Modal, Field, Input, Select, Segmented, StatCard, DataTable, IconButton, toast } from '../../components/ui';
 import { photo } from '../../data/media';
 import { hatchDue, candleDue, recordHatch, INCUBATION_DAYS, nextFlockCode } from '../../lib/health';
 import { SPECIES, speciesLabel } from '../../lib/standards';
 import { fmtDate, num, today, sum } from '../../lib/format';
+
+const INC_STATUS = { working: ['Working', 'green'], 'needs repair': ['Needs repair', 'amber'], 'out of service': ['Out of service', 'red'] };
+/** Incubators are equipment of type "Hatchery"; capacity is a field (older records carry it in the name, e.g. "Incubator 1 (5,280 eggs)"). */
+const incName = (a) => a.name.split(' (')[0];
+const incCapacity = (a) => +a.capacity || +(a.name.match(/\(([\d,]+) eggs\)/)?.[1] || '').replace(/,/g, '') || 0;
+const inIncubator = (batches, a) => sum(batches.filter((b) => b.status !== 'closed' && (b.incubatorId ? b.incubatorId === a.id : b.incubator === incName(a))), (b) => b.eggsSet);
 
 const STATUS = { incubating: { label: 'Incubating', tone: 'sky' }, candled: { label: 'Candled', tone: 'gold' }, closed: { label: 'Hatched', tone: 'green' } };
 
@@ -58,6 +64,17 @@ export default function Hatchery() {
   const [adding, setAdding] = useState(false);
   const [candling, setCandling] = useState(null);
   const [hatching, setHatching] = useState(null);
+  const [inc, setInc] = useState(null);
+  const canManage = user.role !== 'worker';
+  const incubators = db.assets.filter((a) => a.category === 'Hatchery' && inScope(a.farmId));
+  const allBatches = db.hatchBatches;
+  const startSetting = () => {
+    if (!incubators.some((a) => a.status !== 'out of service')) {
+      toast.info('Add an incubator first', 'Then you can set eggs in it.');
+      return setInc({ farmId: farms[0]?.id, status: 'working', category: 'Hatchery' });
+    }
+    return setAdding(true);
+  };
   const batches = db.hatchBatches.filter((b) => inScope(b.farmId)).sort((a, b) => b.setDate.localeCompare(a.setDate));
   const open = batches.filter((b) => b.status !== 'closed');
   const closed = batches.filter((b) => b.status === 'closed');
@@ -68,13 +85,38 @@ export default function Hatchery() {
 
   return (
     <div>
-      <PageHeader title="Hatchery" subtitle="Incubation batches, candling and hatch results" actions={user.role !== 'worker' && <Button icon={Plus} onClick={() => setAdding(true)}>Set eggs</Button>} />
+      <PageHeader title="Hatchery" subtitle="Incubation batches, candling and hatch results" actions={canManage && <><Button variant="secondary" icon={Plus} onClick={() => setInc({ farmId: farms[0]?.id, status: 'working', category: 'Hatchery' })}>Add incubator</Button><Button icon={Egg} onClick={startSetting}>Set eggs</Button></>} />
       <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label="In incubators" value={num(sum(open, (b) => b.eggsSet))} icon={Egg} tone="gold" sub={`${open.length} batches`} />
         <StatCard label="Fertility" value={`${Math.round(fertRate * 100)}%`} icon={Lightbulb} tone="brand" sub="fertile at candling" />
         <StatCard label="Hatch of set" value={`${Math.round(hatchRate * 100)}%`} icon={Bird} tone="green" sub={`${Math.round(hof * 100)}% of fertile eggs`} />
         <StatCard label="Next hatch" value={open.length ? fmtDate(open.map(hatchDue).sort()[0], 'd MMM') : '—'} icon={Timer} tone="teal" sub={open.length ? `${differenceInCalendarDays(parseISO(open.map(hatchDue).sort()[0]), new Date())} days` : ''} />
       </div>
+      <Card className="mb-6">
+        <CardHeader title="Incubators" subtitle="Capacity and how many eggs are in each now" icon={Thermometer} action={canManage && <Button size="sm" variant="ghost" icon={Plus} onClick={() => setInc({ farmId: farms[0]?.id, status: 'working', category: 'Hatchery' })}>Add</Button>} />
+        {!incubators.length ? (
+          <div className="px-5 pb-5 text-sm text-slate-500">No incubators yet. {canManage ? <button type="button" className="font-semibold text-brand-700 underline dark:text-brand-300" onClick={() => setInc({ farmId: farms[0]?.id, status: 'working', category: 'Hatchery' })}>Add your first incubator</button> : 'Ask the owner or manager to add one.'}</div>
+        ) : (
+          <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-3">
+            {incubators.map((a) => {
+              const cap = incCapacity(a);
+              const used = inIncubator(allBatches, a);
+              const [label, tone] = INC_STATUS[a.status] || INC_STATUS.working;
+              return (
+                <div key={a.id} className="rounded-2xl border border-cream-200 p-4 dark:border-white/10">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0"><p className="font-bold text-slate-900 dark:text-white">{incName(a)}</p><p className="truncate text-xs text-slate-500">{db.farms.find((f) => f.id === a.farmId)?.short}{a.model ? ` · ${a.model}` : ''}</p></div>
+                    <div className="flex items-center gap-1"><Badge tone={tone}>{label}</Badge>{canManage && <IconButton icon={Pencil} label="Edit incubator" onClick={() => setInc({ ...a, name: incName(a), capacity: cap || '' })} />}</div>
+                  </div>
+                  <p className="mt-3 text-sm"><b>{num(used)}</b> eggs in{cap ? <> of <b>{num(cap)}</b> · {num(Math.max(0, cap - used))} free</> : ''}</p>
+                  {cap > 0 && <Progress className="mt-2" value={Math.min(100, (used / cap) * 100)} tone={used > cap ? 'red' : 'gold'} />}
+                  {a.nextService && <p className="mt-2 text-xs text-slate-400">Next service {fmtDate(a.nextService)}</p>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
       <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {open.map((b) => {
           const total = INCUBATION_DAYS[b.species] || 21;
@@ -87,7 +129,7 @@ export default function Hatchery() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-display text-xl font-semibold text-brand-900 dark:text-white">{b.code}</p>
-                  <p className="text-xs text-slate-500">{speciesLabel(b.species)} · {b.incubator} · {b.source}</p>
+                  <p className="text-xs text-slate-500">{[speciesLabel(b.species), b.incubator, b.source].filter(Boolean).join(' · ')}</p>
                 </div>
                 <Badge tone={STATUS[b.status].tone}>{STATUS[b.status].label}</Badge>
               </div>
@@ -129,20 +171,24 @@ export default function Hatchery() {
         title="Set eggs in the incubator"
         initial={{ farmId: farms.find((f) => db.pens.some((p) => p.farmId === f.id && p.type === 'Hatchery'))?.id || farms[0]?.id, species: 'chicken', setDate: today(), costPerEgg: 2.2 }}
         fields={[
-          { name: 'farmId', label: 'Farm', type: 'select', options: farms.map((f) => ({ value: f.id, label: f.name })), required: true },
           { name: 'species', label: 'Eggs of', type: 'select', options: SPECIES, required: true },
           { name: 'eggsSet', label: 'Number of eggs', type: 'number', required: true },
           { name: 'setDate', label: 'Date set', type: 'date', required: true },
-          { name: 'incubator', label: 'Incubator', type: 'select', options: db.assets.filter((a) => a.category === 'Hatchery').map((a) => a.name.split(' (')[0]), required: true },
+          { name: 'incubatorId', label: 'Incubator', type: 'select', options: incubators.filter((a) => a.status !== 'out of service').map((a) => { const cap = incCapacity(a); return { value: a.id, label: `${incName(a)} · ${db.farms.find((f) => f.id === a.farmId)?.short}${cap ? ` · ${num(Math.max(0, cap - inIncubator(allBatches, a)))} free` : ''}` }; }), required: true },
           { name: 'costPerEgg', label: 'Cost per egg (GH₵)', type: 'number', step: '0.01' },
           { name: 'source', label: 'Where the eggs came from', span: 2 },
         ]}
         onSubmit={(v) => {
+          const a = db.assets.find((x) => x.id === v.incubatorId);
+          const cap = a ? incCapacity(a) : 0;
+          if (a && cap && inIncubator(db.hatchBatches, a) + +v.eggsSet > cap) return toast.error('Not enough space', `${incName(a)} has room for ${num(Math.max(0, cap - inIncubator(db.hatchBatches, a)))} more eggs.`);
+          if (a) v = { ...v, incubator: incName(a), farmId: a.farmId };
           const n = db.hatchBatches.length + 1;
           db.add('hatchBatches', { ...v, code: `HB-${String(n + 4).padStart(2, '0')}`, eggsSet: +v.eggsSet, costPerEgg: +v.costPerEgg || 0, status: 'incubating', fertile: null, hatched: null, hatchDate: null, candleDate: null, by: user.id });
           if (+v.costPerEgg) db.add('expenses', { farmId: v.farmId, date: v.setDate, category: 'birds', amount: +v.eggsSet * +v.costPerEgg, description: `Hatching eggs × ${v.eggsSet}`, paidFrom: 'bank' });
           toast.success('Batch started', `Hatch due ${fmtDate(hatchDue(v))}`);
           setAdding(false);
+          return null;
         }}
       />
       <FormModal
@@ -156,6 +202,31 @@ export default function Hatchery() {
           db.update('hatchBatches', candling.id, { fertile: +v.fertile, candleDate: today(), status: 'candled' });
           toast.success('Candling saved', `${Math.round((+v.fertile / candling.eggsSet) * 100)}% fertile`);
           setCandling(null);
+        }}
+      />
+      <FormModal
+        open={!!inc}
+        onClose={() => setInc(null)}
+        title={inc?.id ? 'Edit incubator' : 'Add incubator'}
+        subtitle="Also listed under Equipment for servicing and repairs"
+        initial={inc}
+        fields={[
+          { name: 'name', label: 'Name', required: true, placeholder: 'e.g. Incubator 4' },
+          { name: 'capacity', label: 'Holds (eggs)', type: 'number', required: true },
+          { name: 'farmId', label: 'Farm', type: 'select', options: farms.map((f) => ({ value: f.id, label: f.name })), required: true },
+          { name: 'status', label: 'Status', type: 'select', options: Object.entries(INC_STATUS).map(([value, [label]]) => ({ value, label })) },
+          { name: 'model', label: 'Make / model' },
+          { name: 'serial', label: 'Serial no.' },
+          { name: 'purchaseDate', label: 'Bought on', type: 'date' },
+          { name: 'cost', label: 'Cost (GH₵)', type: 'number' },
+          { name: 'nextService', label: 'Next service', type: 'date' },
+        ]}
+        onSubmit={(v) => {
+          const s = useDB.getState();
+          const data = { ...v, category: 'Hatchery', capacity: +v.capacity || 0, cost: +v.cost || 0 };
+          if (v.id) s.update('assets', v.id, data); else s.add('assets', data);
+          toast.success(v.id ? 'Incubator updated' : 'Incubator added');
+          setInc(null);
         }}
       />
       {hatching && <HatchModal batch={hatching} onClose={() => setHatching(null)} />}
