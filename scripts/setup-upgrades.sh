@@ -2,7 +2,8 @@
 # Turns on the three upgrades on the live Nkukɔ Fie Pro project:
 #   1. Database: payments log, marketplace tables, AI vet usage, disease watch
 #      (supabase/migrations/20261124000000_market_payments_vet.sql — only adds; changes no existing data)
-#   2. Secrets (typed here, never saved in the project): Paystack secret key, Anthropic API key
+#   2. Secrets (typed here, never saved in the project): Paystack secret key and the FREE AI keys
+#      (Google AI Studio for Gemini, and Groq) used by the AI vet
 #   3. Deploys the Edge Functions "pay" (Paystack) and "ai-vet"
 # Usage: bash scripts/setup-upgrades.sh          (run again any time to change a key)
 set -euo pipefail
@@ -27,9 +28,11 @@ PY
 echo "→ 2/3  Keys (press Enter to keep the one already saved)"
 TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
 read -rsp "   Paystack SECRET key (sk_test_… or sk_live_…): " PSK; echo
-read -rsp "   Anthropic API key (sk-ant-…): " AK; echo
+read -rsp "   Google AI Studio (Gemini) API key — free at aistudio.google.com/apikey: " GK; echo
+read -rsp "   Groq API key — free at console.groq.com/keys: " QK; echo
 [ -n "$PSK" ] && echo "PAYSTACK_SECRET_KEY=$PSK" >> "$TMP"
-[ -n "$AK" ] && echo "ANTHROPIC_API_KEY=$AK" >> "$TMP"
+[ -n "$GK" ] && echo "GEMINI_API_KEY=$GK" >> "$TMP"
+[ -n "$QK" ] && echo "GROQ_API_KEY=$QK" >> "$TMP"
 echo "APP_SITE=https://nyamebabaku-lab.github.io/nkukofiepro/" >> "$TMP"
 $CLI secrets set --project-ref "$REF" --env-file "$TMP" >/dev/null && echo "   saved"
 

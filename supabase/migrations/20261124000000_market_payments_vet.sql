@@ -8,7 +8,7 @@ alter table public.platform_settings add column if not exists payments_live bool
 alter table public.platform_settings add column if not exists ai_enabled boolean not null default true;
 alter table public.platform_settings add column if not exists ai_free_monthly int not null default 10;
 alter table public.platform_settings add column if not exists ai_premium_monthly int not null default 200;
-alter table public.platform_settings add column if not exists ai_model text not null default 'claude-opus-5-5';
+alter table public.platform_settings add column if not exists ai_model text not null default 'gemini,groq';  -- free AI providers, tried in order
 
 alter table public.businesses add column if not exists region text;
 alter table public.businesses add column if not exists district text;

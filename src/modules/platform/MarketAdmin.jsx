@@ -72,7 +72,7 @@ export default function MarketAdmin({ businesses, onChanged }) {
           <CardHeader title="AI vet" subtitle={`${usage.reduce((a, u) => a + u.used, 0)} questions asked this month`} icon={Sparkles} action={<Button size="sm" icon={Save} onClick={save}>Save</Button>} />
           <div className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="Switched on"><label className="flex items-center gap-2 pt-2 text-sm"><input type="checkbox" className="h-5 w-5 accent-brand-600" checked={!!s.ai_enabled} onChange={(e) => set('ai_enabled', e.target.checked)} /> Farms can use the AI vet</label></Field>
-            <Field label="Model" hint="claude-opus-5-5 is the most accurate; a cheaper model lowers cost"><Input value={s.ai_model || ''} onChange={(e) => set('ai_model', e.target.value)} /></Field>
+            <Field label="Free AI services (in order)" hint="gemini = Google AI Studio, groq = Groq. If one is busy, the next answers."><Input value={s.ai_model || ''} onChange={(e) => set('ai_model', e.target.value)} placeholder="gemini,groq" /></Field>
             <Field label="Free questions per farm per month"><Input inputMode="numeric" value={s.ai_free_monthly} onChange={(e) => set('ai_free_monthly', e.target.value)} /></Field>
             <Field label="Premium farms per month"><Input inputMode="numeric" value={s.ai_premium_monthly} onChange={(e) => set('ai_premium_monthly', e.target.value)} /></Field>
           </div>

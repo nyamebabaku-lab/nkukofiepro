@@ -1,5 +1,5 @@
 // AI vet: photos + a description in English or Twi + the flock's own records → likely causes and what to do now.
-// Live apps call the ai-vet Edge Function (Claude); the demo shows a worked example so it can be tried offline.
+// Live apps call the ai-vet Edge Function (free AI services: Gemini, then Groq); the demo shows a worked example.
 import { useMemo, useState } from 'react';
 import { Camera, Stethoscope, Loader2, X, AlertTriangle, ShieldCheck, Phone, ListChecks, Pill, HelpCircle, Sparkles } from 'lucide-react';
 import { useDB } from '../../data/store';
